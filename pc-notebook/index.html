@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biblioteca de Jogos</title>
+  <style>
+    :root { color-scheme: dark; --bg: #08111d; --bg-2: #0f1c2d; --card: rgba(10, 18, 30, 0.82); --card-border: rgba(255, 255, 255, 0.12); --text: #eef3ff; --muted: #a8b7d4; --accent: #6ee7d8; --accent-2: #8bd3ff; --shadow: 0 22px 60px rgba(0, 0, 0, 0.35); }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text); background: radial-gradient(circle at top left, rgba(110, 231, 216, 0.18), transparent 30%), radial-gradient(circle at top right, rgba(139, 211, 255, 0.16), transparent 28%), linear-gradient(135deg, var(--bg), var(--bg-2)); display: grid; place-items: center; padding: 24px; }
+    .shell { width: min(1100px, 100%); background: var(--card); border: 1px solid var(--card-border); border-radius: 28px; box-shadow: var(--shadow); overflow: hidden; backdrop-filter: blur(16px); }
+    header { padding: 32px 32px 18px; display: grid; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    .eyebrow { margin: 0; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); font-size: 0.8rem; font-weight: 700; }
+    h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.8rem); line-height: 1; }
+    .copy { margin: 0; color: var(--muted); max-width: 66ch; font-size: 1.02rem; line-height: 1.6; }
+    main { padding: 28px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .game-card { display: grid; gap: 10px; padding: 20px; border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.1); background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)); text-decoration: none; color: inherit; min-height: 180px; transition: transform 180ms ease, border-color 180ms ease, background 180ms ease; }
+    .game-card:hover { transform: translateY(-4px); border-color: rgba(110, 231, 216, 0.42); background: linear-gradient(180deg, rgba(110, 231, 216, 0.1), rgba(139, 211, 255, 0.05)); }
+    .tag { display: inline-flex; width: fit-content; padding: 6px 10px; border-radius: 999px; background: rgba(110, 231, 216, 0.15); color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .game-card h2 { margin: 0; font-size: 1.3rem; }
+    .game-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+    footer { padding: 0 32px 28px; color: var(--muted); font-size: 0.95rem; }
+    @media (max-width: 640px) { body { padding: 14px; } header, main, footer { padding-left: 18px; padding-right: 18px; } main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <p class="eyebrow">Colecao de jogos</p>
+      <h1>Abra qualquer jogo daqui</h1>
+      <p class="copy">Esta e a entrada secundária para a versão web. Cada card abre um jogo em sua própria pasta, sem PWA, sem service worker e sem instalação automática.</p>
+    </header>
+    <main id="game-list" aria-label="Lista de jogos"></main>
+    <footer>Navegação pensada para desktop e navegador comum.</footer>
+  </div>
+  <script>
+    const games = [
+      { name: 'Capital Imobiliario 2', tag: 'Estratégia', description: 'Jogo de negociacao imobiliaria com tabuleiro, propriedades e bots.', url: './capital%20imobilario%202/index.html' },
+      { name: 'Coração na Area 6', tag: 'Ação', description: 'Aventura rápida com controles simples e foco em reflexos.', url: './coração%20na%20area6/index.html' },
+      { name: 'Damas 2', tag: 'Tabuleiro', description: 'Partidas clássicas de damas em tela limpa e direta.', url: './damas%202/index.html' },
+      { name: 'Pega Pontos2', tag: 'Arcade', description: 'Labirinto neon para jogar com teclado ou controles simples.', url: './pega-pontos2/index.html' },
+      { name: 'Pinball Patel Fin 6', tag: 'Arcade', description: 'Mesa de pinball com interface de jogo única e objetiva.', url: './pinball-patel-fin6/principal.html' },
+      { name: 'Xadrez 2', tag: 'Tabuleiro', description: 'Partida de xadrez com tabuleiro clássico e movimentos por clique.', url: './xadres2/index.html' }
+    ];
+    document.getElementById('game-list').innerHTML = games.map((game) => `<a class="game-card" href="${game.url}"><span class="tag">${game.tag}</span><h2>${game.name}</h2><p>${game.description}</p></a>`).join('');
+  </script>
+</body>
+</html>
