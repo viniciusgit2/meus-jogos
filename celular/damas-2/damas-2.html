@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Damas 2 - Celular</title>
+  <style>
+    :root { --bg:#161c27; --text:#ebf2ff; --panel:#1d2a3c; --muted:#9eb2d2; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:"Verdana",sans-serif; background:radial-gradient(circle at top,#273a57,var(--bg)); color:var(--text); }
+    .app { max-width:820px; margin:0 auto; padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom); }
+    h1 { margin:8px 0; }
+    .top { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .chip { background:var(--panel); border:1px solid #3b5c87; border-radius:999px; padding:6px 10px; color:var(--muted); }
+    .board { display:grid; grid-template-columns:repeat(8,1fr); gap:0; border:1px solid #3b5c87; border-radius:12px; overflow:hidden; touch-action:none; }
+    .sq { aspect-ratio:1/1; display:grid; place-items:center; font-size: clamp(1rem, 3.8vw, 1.8rem); }
+    .l { background:#d7b88e; }
+    .d { background:#7f5b35; }
+    .sel { outline:3px solid #70e4ff; outline-offset:-3px; }
+    .p1 { color:#fff; text-shadow:0 1px 0 #000; }
+    .p2 { color:#20122d; }
+    .king::after { content:'*'; font-size:.7em; margin-left:2px; }
+    button { width:100%; margin-top:8px; min-height:48px; border:0; border-radius:12px; font-weight:700; background:linear-gradient(130deg,#71d7ff,#b8ecff); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Damas 2</h1>
+    <div class="top">
+      <div class="chip" id="turn">Vez: Brancas</div>
+      <div class="chip" id="msg">Toque na peca e depois na casa</div>
+    </div>
+    <div id="board" class="board"></div>
+    <button id="reset">Reiniciar partida</button>
+  </div>
+  <audio id="bg-music" loop preload="auto" autoplay playsinline style="display:none;">
+    <source src="deltax-music-burst-286988.mp3" type="audio/mpeg" />
+  </audio>
+  <script>
+    const N = 8;
+    let board, turn, selected;
+    const bgMusic = document.getElementById('bg-music');
+
+    function iniciarMusica() {
+      bgMusic.play().catch(() => {});
+    }
+
+    window.addEventListener('load', iniciarMusica);
+    window.addEventListener('pageshow', iniciarMusica);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) iniciarMusica();
+    });
+    setInterval(iniciarMusica, 3000);
+
+    function init() {
+      board = Array.from({ length: N }, () => Array(N).fill(null));
+      for (let y = 0; y < 3; y++) for (let x = 0; x < N; x++) if ((x + y) % 2) board[y][x] = { p:2, k:false };
+      for (let y = 5; y < N; y++) for (let x = 0; x < N; x++) if ((x + y) % 2) board[y][x] = { p:1, k:false };
+      turn = 1; selected = null; render();
+    }
+
+    function inside(x,y){ return x>=0 && y>=0 && x<N && y<N; }
+    function dirs(piece){
+      if (piece.k) return [[1,1],[-1,1],[1,-1],[-1,-1]];
+      return piece.p===1 ? [[1,-1],[-1,-1]] : [[1,1],[-1,1]];
+    }
+
+    function legalMoves(x,y){
+      const piece = board[y][x];
+      if (!piece || piece.p!==turn) return [];
+      const moves = [];
+      for (const [dx,dy] of dirs(piece)) {
+        const nx=x+dx, ny=y+dy;
+        if (inside(nx,ny) && !board[ny][nx]) moves.push({x:nx,y:ny,capture:false});
+        const jx=x+dx, jy=y+dy, lx=x+2*dx, ly=y+2*dy;
+        if (inside(lx,ly) && board[jy][jx] && board[jy][jx].p!==piece.p && !board[ly][lx]) {
+          moves.push({x:lx,y:ly,capture:true,jx,jy});
+        }
+      }
+      return moves;
+    }
+
+    function movePiece(from,to){
+      const p=board[from.y][from.x];
+      const mv = legalMoves(from.x,from.y).find((m)=>m.x===to.x&&m.y===to.y);
+      if (!mv) return false;
+      board[to.y][to.x]=p; board[from.y][from.x]=null;
+      if (mv.capture) board[mv.jy][mv.jx]=null;
+      if (p.p===1 && to.y===0) p.k=true;
+      if (p.p===2 && to.y===7) p.k=true;
+      turn = turn===1?2:1;
+      selected=null;
+      return true;
+    }
+
+    function pieceChar(piece){ return piece.p===1 ? '●' : '○'; }
+
+    function checkEnd(){
+      let p1=0,p2=0;
+      for (let y=0;y<N;y++) for(let x=0;x<N;x++) { const c=board[y][x]; if(c){ if(c.p===1)p1++; else p2++; } }
+      if (!p1 || !p2) {
+        document.getElementById('msg').textContent = !p1 ? 'Pretas venceram' : 'Brancas venceram';
+      }
+    }
+
+    function tap(x,y){
+      if (!selected) {
+        if (board[y][x] && board[y][x].p===turn) selected={x,y};
+      } else {
+        if (selected.x===x && selected.y===y) selected=null;
+        else if (!movePiece(selected,{x,y})) {
+          if (board[y][x] && board[y][x].p===turn) selected={x,y};
+        }
+      }
+      render();
+      checkEnd();
+    }
+
+    function render(){
+      document.getElementById('turn').textContent = `Vez: ${turn===1?'Brancas':'Pretas'}`;
+      const el=document.getElementById('board');
+      let html='';
+      for (let y=0;y<N;y++) for(let x=0;x<N;x++) {
+        const dark=(x+y)%2;
+        const p=board[y][x];
+        const sel = selected && selected.x===x && selected.y===y ? ' sel' : '';
+        const cls = `sq ${dark?'d':'l'}${sel}`;
+        html += `<button data-x="${x}" data-y="${y}" class="${cls}">${p?`<span class="p${p.p} ${p.k?'king':''}">${pieceChar(p)}</span>`:''}</button>`;
+      }
+      el.innerHTML=html;
+      el.querySelectorAll('button').forEach((b)=>b.addEventListener('click',()=>tap(+b.dataset.x,+b.dataset.y)));
+    }
+
+    document.getElementById('reset').addEventListener('click', init);
+    iniciarMusica();
+    init();
+  </script>
+</body>
+</html>

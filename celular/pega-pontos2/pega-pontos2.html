@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Pega Pontos2 - Celular</title>
+  <style>
+    :root { --bg:#0d0f1d; --wall:#1c2f55; --path:#0f1830; --dot:#fff3a3; --player:#63ffd8; --text:#eff6ff; --muted:#9bb1cc; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:"Verdana",sans-serif; background:radial-gradient(circle at top,#182a4b,var(--bg)); color:var(--text); }
+    .app { max-width: 900px; margin:0 auto; padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom); }
+    h1 { margin:8px 0; }
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .chip { background:#132344; border:1px solid #2b4f85; color:var(--muted); border-radius:999px; padding:6px 10px; }
+    canvas { width:100%; max-height: 70vh; background:#0a1227; border:1px solid #2b4f85; border-radius:12px; touch-action:none; }
+    .pad { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
+    .pad button { min-height:50px; border:0; border-radius:10px; font-weight:700; background:linear-gradient(130deg,#6bf3d8,#b7ffef); }
+    .pad .empty { visibility:hidden; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Pega Pontos2</h1>
+    <div class="chips">
+      <div class="chip" id="score">Pontos: 0</div>
+      <div class="chip" id="rest">Restantes: 0</div>
+    </div>
+    <canvas id="cv" width="420" height="420"></canvas>
+    <div class="pad">
+      <div class="empty"></div><button data-d="U">Cima</button><div class="empty"></div>
+      <button data-d="L">Esquerda</button><button data-d="R">Direita</button><button data-d="D">Baixo</button>
+    </div>
+  </div>
+  <audio id="bg-music" loop preload="auto" autoplay playsinline style="display:none;">
+    <source src="deltax-music-burst-286988.mp3" type="audio/mpeg" />
+  </audio>
+  <script>
+    const grid = [
+      '111111111111',
+      '100000000001',
+      '101111111101',
+      '101000100001',
+      '101011101101',
+      '101000001001',
+      '101111101101',
+      '100000100001',
+      '101110111101',
+      '100010000001',
+      '101111111101',
+      '111111111111'
+    ].map((r)=>r.split('').map(Number));
+
+    let player={x:1,y:1}, score=0;
+    const dots = new Set();
+    for(let y=0;y<12;y++) for(let x=0;x<12;x++) if(grid[y][x]===0 && !(x===1&&y===1)) dots.add(`${x},${y}`);
+
+    const cv = document.getElementById('cv');
+    const cx = cv.getContext('2d');
+    const cs = 35;
+    const bgMusic = document.getElementById('bg-music');
+
+    function iniciarMusica() {
+      bgMusic.play().catch(() => {});
+    }
+
+    window.addEventListener('load', iniciarMusica);
+    window.addEventListener('pageshow', iniciarMusica);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) iniciarMusica();
+    });
+    setInterval(iniciarMusica, 3000);
+
+    function draw(){
+      cx.clearRect(0,0,cv.width,cv.height);
+      for(let y=0;y<12;y++) for(let x=0;x<12;x++) {
+        cx.fillStyle = grid[y][x]===1 ? '#1f3a69' : '#0f1933';
+        cx.fillRect(x*cs,y*cs,cs,cs);
+        if(dots.has(`${x},${y}`)) {
+          cx.fillStyle='#fff3a3';
+          cx.beginPath(); cx.arc(x*cs+cs/2,y*cs+cs/2,4,0,Math.PI*2); cx.fill();
+        }
+      }
+      cx.fillStyle='#63ffd8';
+      cx.beginPath(); cx.arc(player.x*cs+cs/2, player.y*cs+cs/2, 11, 0, Math.PI*2); cx.fill();
+      document.getElementById('score').textContent = `Pontos: ${score}`;
+      document.getElementById('rest').textContent = `Restantes: ${dots.size}`;
+      if (!dots.size) {
+        cx.fillStyle='rgba(0,0,0,.5)'; cx.fillRect(0,0,cv.width,cv.height);
+        cx.fillStyle='#fff'; cx.font='bold 30px Verdana'; cx.fillText('Venceu!', 145, 210);
+      }
+    }
+
+    function step(dir){
+      const m = {U:[0,-1],D:[0,1],L:[-1,0],R:[1,0]}[dir];
+      const nx=player.x+m[0], ny=player.y+m[1];
+      if(grid[ny][nx]===1) return;
+      player={x:nx,y:ny};
+      const key=`${nx},${ny}`;
+      if(dots.has(key)){ dots.delete(key); score += 10; }
+      draw();
+    }
+
+    document.querySelectorAll('[data-d]').forEach((b)=>b.addEventListener('click',()=>step(b.dataset.d)));
+    let start=null;
+    cv.addEventListener('touchstart',(e)=>{ const t=e.touches[0]; start={x:t.clientX,y:t.clientY}; }, {passive:true});
+    cv.addEventListener('touchend',(e)=>{
+      if(!start) return;
+      const t=e.changedTouches[0];
+      const dx=t.clientX-start.x, dy=t.clientY-start.y;
+      if(Math.abs(dx)>Math.abs(dy)) step(dx>0?'R':'L'); else step(dy>0?'D':'U');
+      start=null;
+    }, {passive:true});
+
+    iniciarMusica();
+    draw();
+  </script>
+</body>
+</html>

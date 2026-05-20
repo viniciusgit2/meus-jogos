@@ -147,6 +147,9 @@
                 <div class="instr-section">
                     <h3>🖱️ Como Jogar Aqui</h3>
                     <ul class="how-list">
+                        <li>Mouse: clique em uma peça sua e depois na casa de destino.</li>
+                        <li>Teclado: setas para navegar, Enter para confirmar, Esc para voltar menus.</li>
+                        <li>Controle (Xbox/PlayStation/Nintendo): direcional/analógico para navegar, botao principal para confirmar, botao secundario para voltar.</li>
                         <li>Clique em uma peça sua para selecioná-la (fica verde).</li>
                         <li>Os círculos verdes indicam onde você pode mover.</li>
                         <li>Clique no destino para mover.</li>
@@ -199,6 +202,25 @@
         </div>
     </div>
 
+    <audio id="bg-music" loop preload="auto" autoplay playsinline style="display:none;">
+        <source src="cryptionax-sonic-boom-314707.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const bgMusic = document.getElementById('bg-music');
+        function iniciarMusicaAuto() {
+            bgMusic.play().catch(() => {});
+        }
+
+        window.addEventListener('load', iniciarMusicaAuto);
+        window.addEventListener('pageshow', iniciarMusicaAuto);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) iniciarMusicaAuto();
+        });
+        setInterval(iniciarMusicaAuto, 3000);
+    </script>
+
+    <script src="../gamepad-support.js"></script>
     <script src="chess.js"></script>
 </body>
 </html>
