@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Xadres2 maskable">
+  <rect width="512" height="512" fill="#8b4513"/>
+  <g transform="translate(44 44)">
+    <rect x="0" y="0" width="424" height="424" rx="40" fill="#1a0e00"/>
+    <rect x="64" y="52" width="296" height="320" rx="24" fill="#f5e6c8"/>
+    <text x="212" y="272" font-size="190" font-family="Arial, sans-serif" text-anchor="middle" fill="#2d6e2d">♞</text>
+    <text x="332" y="376" font-size="98" font-family="Arial, sans-serif" text-anchor="middle" fill="#f5e6c8" font-weight="700">2</text>
+  </g>
+</svg>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Pinball Patel Fin 6 - Celular</title>
+  <style>
+    :root { --bg:#071a18; --panel:#123530; --text:#e8fff8; --muted:#98c8bd; --accent:#7dffe0; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Verdana",sans-serif; background:radial-gradient(circle at top,#165147,var(--bg)); color:var(--text); }
+    .app { max-width: 920px; margin:0 auto; padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom); }
+    h1 { margin:8px 0; }
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .chip { background:var(--panel); border:1px solid #2f6f65; border-radius:999px; padding:6px 10px; color:var(--muted); }
+    canvas { width:100%; background:#0b2420; border:1px solid #2f6f65; border-radius:12px; touch-action:none; }
+    .controls { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px; }
+    button { min-height:56px; border:0; border-radius:10px; font-weight:700; background:linear-gradient(130deg,var(--accent),#c9fff1); color:#07312b; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Pinball Patel Fin 6</h1>
+    <div class="chips">
+      <div class="chip" id="score">Pontos: 0</div>
+      <div class="chip" id="best">Recorde: 0</div>
+    </div>
+    <canvas id="cv" width="420" height="700"></canvas>
+    <div class="controls">
+      <button id="left">Flipper Esq</button>
+      <button id="reset">Nova bola</button>
+      <button id="right">Flipper Dir</button>
+    </div>
+  </div>
+  <audio id="bg-music" loop preload="auto" autoplay playsinline style="display:none;">
+    <source src="deltax-music-burst-286988.mp3" type="audio/mpeg" />
+  </audio>
+  <script>
+    const cv=document.getElementById('cv'); const cx=cv.getContext('2d');
+    const st={ball:{x:210,y:80,vx:2.2,vy:2.5,r:10}, l:false, r:false, score:0, best:0, running:true};
+    const bumpers=[{x:120,y:220,r:24},{x:300,y:260,r:22},{x:210,y:170,r:20}];
+    const bgMusic = document.getElementById('bg-music');
+
+    function iniciarMusica() {
+      bgMusic.play().catch(() => {});
+    }
+
+    window.addEventListener('load', iniciarMusica);
+    window.addEventListener('pageshow', iniciarMusica);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) iniciarMusica();
+    });
+    setInterval(iniciarMusica, 3000);
+
+    function resetBall(){ st.ball={x:210,y:80,vx:(Math.random()*2-1)*2.4,vy:2.4,r:10}; st.running=true; }
+
+    function physics(){
+      if(!st.running) return;
+      const b=st.ball;
+      b.x+=b.vx; b.y+=b.vy; b.vy+=0.06;
+      if(b.x<b.r||b.x>cv.width-b.r){ b.vx*=-0.98; b.x=Math.max(b.r,Math.min(cv.width-b.r,b.x)); }
+      if(b.y<b.r){ b.vy*=-0.98; b.y=b.r; }
+
+      bumpers.forEach((p)=>{
+        const dx=b.x-p.x, dy=b.y-p.y; const d=Math.hypot(dx,dy);
+        if(d < b.r+p.r){
+          const nx=dx/d, ny=dy/d;
+          const speed=Math.hypot(b.vx,b.vy)+0.6;
+          b.vx=nx*speed; b.vy=ny*speed;
+          b.x=p.x+nx*(b.r+p.r+1); b.y=p.y+ny*(b.r+p.r+1);
+          st.score += 25;
+        }
+      });
+
+      const ly=620, ry=620;
+      const lTip = st.l ? {x:180,y:590} : {x:160,y:620};
+      const rTip = st.r ? {x:240,y:590} : {x:260,y:620};
+      const flippers = [
+        {ax:120, ay:ly, bx:lTip.x, by:lTip.y, boost:st.l},
+        {ax:300, ay:ry, bx:rTip.x, by:rTip.y, boost:st.r}
+      ];
+
+      flippers.forEach((f)=>{
+        const t = Math.max(0, Math.min(1, ((b.x-f.ax)*(f.bx-f.ax)+(b.y-f.ay)*(f.by-f.ay)) / ((f.bx-f.ax)**2+(f.by-f.ay)**2)));
+        const px = f.ax + t*(f.bx-f.ax), py = f.ay + t*(f.by-f.ay);
+        const d = Math.hypot(b.x-px, b.y-py);
+        if(d < b.r+6){
+          b.vy = -Math.abs(b.vy) - (f.boost ? 3 : 1.2);
+          b.vx += (f.ax < cv.width/2 ? 1.1 : -1.1);
+          st.score += 10;
+        }
+      });
+
+      if (b.y > cv.height + 20) {
+        st.best=Math.max(st.best,st.score);
+        st.running=false;
+      }
+    }
+
+    function draw(){
+      cx.clearRect(0,0,cv.width,cv.height);
+      cx.fillStyle='#0d2a25'; cx.fillRect(0,0,cv.width,cv.height);
+      cx.strokeStyle='#2f6f65'; cx.lineWidth=4; cx.strokeRect(6,6,cv.width-12,cv.height-12);
+
+      bumpers.forEach((p)=>{ cx.fillStyle='#67ffe0'; cx.beginPath(); cx.arc(p.x,p.y,p.r,0,Math.PI*2); cx.fill(); });
+
+      cx.strokeStyle='#b0fff0'; cx.lineWidth=10;
+      cx.beginPath(); cx.moveTo(120,620); cx.lineTo(st.l?180:160, st.l?590:620); cx.stroke();
+      cx.beginPath(); cx.moveTo(300,620); cx.lineTo(st.r?240:260, st.r?590:620); cx.stroke();
+
+      const b=st.ball;
+      cx.fillStyle='#fff'; cx.beginPath(); cx.arc(b.x,b.y,b.r,0,Math.PI*2); cx.fill();
+
+      if(!st.running){ cx.fillStyle='rgba(0,0,0,.55)'; cx.fillRect(0,0,cv.width,cv.height); cx.fillStyle='#fff'; cx.font='bold 30px Verdana'; cx.fillText('Toque em Nova bola',90,330); }
+
+      document.getElementById('score').textContent=`Pontos: ${st.score}`;
+      document.getElementById('best').textContent=`Recorde: ${st.best}`;
+    }
+
+    function frame(){ physics(); draw(); requestAnimationFrame(frame); }
+
+    function hold(btn, key){
+      btn.addEventListener('pointerdown',()=>st[key]=true);
+      btn.addEventListener('pointerup',()=>st[key]=false);
+      btn.addEventListener('pointercancel',()=>st[key]=false);
+      btn.addEventListener('lostpointercapture',()=>st[key]=false);
+    }
+
+    hold(document.getElementById('left'),'l');
+    hold(document.getElementById('right'),'r');
+    document.getElementById('reset').addEventListener('click',()=>{ st.score=0; resetBall(); });
+    iniciarMusica();
+    frame();
+  </script>
+</body>
+</html>

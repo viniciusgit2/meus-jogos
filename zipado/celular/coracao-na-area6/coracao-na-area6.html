@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Coração na Area 6</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b2a16;
+      --card: rgba(250, 255, 250, 0.95);
+      --card-2: rgba(255, 255, 255, 0.88);
+      --text: #102217;
+      --accent: #f4c542;
+      --accent-2: #d62828;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Nunito", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(244,197,66,.18), transparent 28%),
+        linear-gradient(160deg, rgba(8,31,17,.94), rgba(17,75,36,.92)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 120px, rgba(0,0,0,.03) 120px, rgba(0,0,0,.03) 240px);
+      display: grid;
+      place-items: center;
+      padding: env(safe-area-inset-top,16px) env(safe-area-inset-right,12px) env(safe-area-inset-bottom,16px) env(safe-area-inset-left,12px);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 0 42%, rgba(255,255,255,.08) 42.4%, transparent 43%);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      pointer-events: none;
+    }
+    .app-shell { width: min(100%, 920px); display: grid; gap: 20px; }
+    .hero-card, .game-card, .result-card {
+      background: var(--card); border: 3px solid rgba(255,255,255,.3);
+      border-radius: 28px; box-shadow: var(--shadow); padding: 28px; backdrop-filter: blur(10px);
+    }
+    .hero-card { position: relative; overflow: hidden; }
+    .hero-card::after {
+      content: ""; position: absolute; right: -30px; top: -30px;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(244,197,66,.7), rgba(244,197,66,0));
+    }
+    .hero-tag, .mini-label, .meta-label, .theme-line {
+      text-transform: uppercase; letter-spacing: .12em; font-weight: 800;
+    }
+    .hero-tag, .theme-line { color: var(--accent-2); font-size: .78rem; }
+    h1, h2 { margin: 0; font-family: "Bebas Neue", sans-serif; letter-spacing: .03em; line-height: 1; }
+    h1 { font-size: clamp(2.4rem,9vw,5.8rem); margin-top: 8px; }
+    h2 { font-size: clamp(1.5rem,5vw,3.1rem); }
+    .hero-copy, #feedback-text, #result-summary { font-size: 1rem; line-height: 1.6; max-width: 62ch; }
+    .hero-meta { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin: 24px 0; }
+    .hero-meta > div, .timer-box {
+      background: var(--card-2); border: 2px solid rgba(16,34,23,.08); border-radius: 18px; padding: 14px 16px;
+    }
+    .meta-label, .mini-label { display: block; font-size: .72rem; color: rgba(16,34,23,.64); margin-bottom: 6px; }
+    .primary-button, .secondary-button, .answer-button {
+      border: none; border-radius: 18px; font: inherit; font-weight: 800;
+      touch-action: manipulation; cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .primary-button, .secondary-button { padding: 14px 22px; font-size: 1rem; }
+    .primary-button {
+      background: linear-gradient(135deg, var(--accent), #ffe38b);
+      color: #402c00; box-shadow: 0 12px 24px rgba(244,197,66,.32);
+    }
+    .secondary-button { background: #173f22; color: white; }
+    .primary-button:active, .secondary-button:active, .answer-button:active:not(:disabled) { transform: translateY(-2px); }
+    .game-topbar { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 24px; }
+    .game-topbar > div {
+      background: linear-gradient(180deg,rgba(255,255,255,.9),rgba(231,247,234,.9));
+      border: 2px solid rgba(17,75,36,.1); border-radius: 18px; padding: 14px 16px;
+    }
+    .question-board { display: grid; gap: 18px; }
+    .answers-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+    .answer-button {
+      text-align: left; min-height: 86px; padding: 16px; background: white;
+      color: var(--text); border: 2px solid rgba(17,75,36,.12); box-shadow: 0 10px 18px rgba(12,36,20,.08);
+    }
+    .answer-button:disabled { cursor: default; }
+    .answer-button.correct { background: #ddf7df; border-color: rgba(42,157,75,.42); }
+    .answer-button.wrong { background: #ffe0dc; border-color: rgba(196,69,54,.42); }
+    .feedback-panel {
+      margin-top: 20px;
+      background: linear-gradient(180deg,rgba(17,75,36,.08),rgba(255,255,255,.95));
+      border-radius: 22px; padding: 20px; border: 2px solid rgba(17,75,36,.1);
+    }
+    .feedback-panel strong { display: block; margin-bottom: 8px; font-size: 1.05rem; }
+    .vidas-box { text-align: center; }
+    #vidas { font-size: 1.2rem; letter-spacing: 2px; }
+    .hidden { display: none; }
+    .category-card {
+      background: var(--card); border: 3px solid rgba(255,255,255,.3);
+      border-radius: 28px; box-shadow: var(--shadow); padding: 36px 28px;
+      backdrop-filter: blur(10px); text-align: center;
+    }
+    .category-card h2 { margin: 10px 0 28px; }
+    .category-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+    .category-button {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      padding: 22px 16px; background: white; border: 2px solid rgba(17,75,36,.12);
+      border-radius: 22px; box-shadow: 0 10px 24px rgba(12,36,20,.1);
+      cursor: pointer; font-family: "Nunito",sans-serif; touch-action: manipulation;
+      transition: transform .18s ease, border-color .18s ease;
+    }
+    .category-button:active { transform: translateY(-4px); border-color: var(--accent); }
+    .cat-icon { font-size: 2.2rem; line-height: 1; }
+    .category-button strong { font-size: .95rem; font-weight: 800; color: var(--text); }
+    .cat-desc { font-size: .78rem; color: rgba(16,34,23,.6); font-weight: 700; }
+    .quantity-subtitle { color: rgba(16,34,23,.6); font-size: .9rem; margin: -10px 0 24px; font-weight: 700; }
+    .quantity-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+    .quantity-button {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 20px 24px; background: white; border: 2px solid rgba(17,75,36,.12);
+      border-radius: 22px; box-shadow: 0 10px 24px rgba(12,36,20,.1);
+      cursor: pointer; font-family: "Nunito",sans-serif; min-width: 90px;
+      touch-action: manipulation; transition: transform .18s ease, border-color .18s ease;
+    }
+    .quantity-button:active { transform: translateY(-4px); border-color: var(--accent); }
+    .qty-number { font-size: 2rem; font-weight: 800; color: var(--accent); line-height: 1; }
+    .qty-label { font-size: .8rem; font-weight: 700; color: rgba(16,34,23,.6); }
+    #dark-toggle {
+      position: fixed; bottom: calc(1rem + env(safe-area-inset-bottom,0px)); right: 4.2rem;
+      z-index: 999; background: #1e3a28; color: #f4c542; border: none;
+      border-radius: 50%; width: 3rem; height: 3rem; font-size: 1.4rem;
+      cursor: pointer; touch-action: manipulation; box-shadow: 0 4px 12px rgba(0,0,0,.3);
+    }
+    #back-btn {
+      position: fixed; top: calc(.8rem + env(safe-area-inset-top,0px)); left: .8rem;
+      z-index: 999; background: rgba(17,75,36,.85); color: #f4c542; border: none;
+      border-radius: 50%; width: 2.8rem; height: 2.8rem; font-size: 1.2rem;
+      cursor: pointer; touch-action: manipulation; box-shadow: 0 4px 12px rgba(0,0,0,.3);
+      display: flex; align-items: center; justify-content: center; text-decoration: none;
+    }
+    body.dark-mode {
+      --card: rgba(10,22,14,.97); --card-2: rgba(14,30,19,.95); --text: #d4f0da;
+      background: radial-gradient(circle at top,rgba(244,197,66,.10),transparent 28%),
+        linear-gradient(160deg,rgba(3,10,5,.97),rgba(8,20,12,.96)),
+        repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0,rgba(255,255,255,.02) 120px,rgba(0,0,0,.04) 120px,rgba(0,0,0,.04) 240px);
+    }
+    body.dark-mode .hero-card, body.dark-mode .game-card,
+    body.dark-mode .result-card, body.dark-mode .category-card { border-color: rgba(255,255,255,.08); }
+    body.dark-mode .hero-meta > div, body.dark-mode .timer-box { background: rgba(14,30,19,.95); border-color: rgba(255,255,255,.07); }
+    body.dark-mode .meta-label, body.dark-mode .mini-label { color: rgba(212,240,218,.55); }
+    body.dark-mode .game-topbar > div { background: rgba(14,30,19,.95); border-color: rgba(255,255,255,.07); }
+    body.dark-mode .answer-button { background: #0d2016; color: #d4f0da; border-color: rgba(255,255,255,.09); }
+    body.dark-mode .answer-button.correct { background: #0d3320; border-color: rgba(42,157,75,.5); }
+    body.dark-mode .answer-button.wrong { background: #2d1010; border-color: rgba(196,69,54,.5); }
+    body.dark-mode .feedback-panel { background: linear-gradient(180deg,rgba(10,22,14,.92),rgba(10,22,14,.98)); border-color: rgba(255,255,255,.07); }
+    body.dark-mode .secondary-button { background: #051008; border: 2px solid rgba(255,255,255,.12); }
+    body.dark-mode .category-button { background: #0d2016; border-color: rgba(255,255,255,.09); }
+    body.dark-mode .category-button strong { color: #d4f0da; }
+    body.dark-mode .cat-desc, body.dark-mode .quantity-subtitle { color: rgba(212,240,218,.55); }
+    body.dark-mode .quantity-button { background: #0d2016; border-color: rgba(255,255,255,.09); }
+    body.dark-mode .qty-label { color: rgba(212,240,218,.55); }
+    body.dark-mode #dark-toggle { background: #f4c542; color: #402c00; }
+    @media (max-width: 600px) {
+      body { place-items: start; padding: 10px; padding-top: env(safe-area-inset-top,10px); padding-bottom: env(safe-area-inset-bottom,10px); }
+      .hero-card, .game-card, .result-card, .category-card { padding: 16px; border-radius: 20px; }
+      .hero-meta, .game-topbar { grid-template-columns: 1fr 1fr; }
+      .answers-grid { grid-template-columns: 1fr; }
+      .answer-button { min-height: 60px; }
+      .category-grid { grid-template-columns: 1fr; }
+      .quantity-grid { gap: 10px; }
+      .quantity-button { min-width: 80px; padding: 16px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero-card" id="hero-card">
+      <p class="hero-tag">Quiz interativo • ensino médio • futebol + biologia</p>
+      <h1>Coração na Area 6</h1>
+      <p class="hero-copy">
+        Entre em campo com perguntas sobre medicina, sistema cardiovascular e odontologia.
+        Cada rodada tem 60 segundos, resposta por toque e explicações rápidas para fixar o conteúdo.
+      </p>
+      <div class="hero-meta">
+        <div><span class="meta-label">Modo</span><strong>Partida relâmpago</strong></div>
+        <div><span class="meta-label">Tempo</span><strong>60 s / pergunta</strong></div>
+        <div><span class="meta-label">Vidas</span><strong>3 por rodada</strong></div>
+      </div>
+      <button id="start-button" class="primary-button">Começar jogo</button>
+    </section>
+
+    <section id="category-card" class="category-card hidden">
+      <p class="hero-tag">Escolha a categoria</p>
+      <h2>Qual tema?</h2>
+      <div class="category-grid">
+        <button class="category-button" id="cat-coracao"><span class="cat-icon">🏥</span><strong>Medicina e Odonto</strong><span class="cat-desc">Cardiovascular, Clínica e Odontologia</span></button>
+        <button class="category-button" id="cat-futebol"><span class="cat-icon">⚽</span><strong>Futebol</strong><span class="cat-desc">Regras, história e curiosidades</span></button>
+        <button class="category-button" id="cat-informatica"><span class="cat-icon">💻</span><strong>Concurso Público</strong><span class="cat-desc">Informática</span></button>
+        <button class="category-button" id="cat-ensinomedio"><span class="cat-icon">📚</span><strong>Ensino Médio</strong><span class="cat-desc">Múltiplas disciplinas</span></button>
+        <button class="category-button" id="cat-legislacaoti"><span class="cat-icon">⚖️</span><strong>Legislação de TI</strong><span class="cat-desc">Leis e normas da informática</span></button>
+      </div>
+    </section>
+
+    <section id="quantity-card" class="category-card hidden">
+      <p class="hero-tag">Modo de jogo</p>
+      <h2>Quantas perguntas?</h2>
+      <p class="quantity-subtitle">Perguntas sorteadas aleatoriamente a cada rodada.</p>
+      <div class="quantity-grid">
+        <button class="quantity-button" data-qty="7"><span class="qty-number">7</span><span class="qty-label">Rápida</span></button>
+        <button class="quantity-button" data-qty="10"><span class="qty-number">10</span><span class="qty-label">Clássico</span></button>
+        <button class="quantity-button" data-qty="15"><span class="qty-number">15</span><span class="qty-label">Desafio</span></button>
+        <button class="quantity-button" data-qty="20"><span class="qty-number">20</span><span class="qty-label">Maratona</span></button>
+        <button class="quantity-button" data-qty="50"><span class="qty-number">50</span><span class="qty-label">Extremo</span></button>
+      </div>
+    </section>
+
+    <section id="game-card" class="game-card hidden" aria-live="polite">
+      <header class="game-topbar">
+        <div><p class="mini-label">Placar</p><strong id="score">0</strong></div>
+        <div><p class="mini-label">Pergunta</p><strong id="progress">1/7</strong></div>
+        <div class="timer-box"><p class="mini-label">Tempo</p><strong id="timer">60</strong></div>
+        <div class="vidas-box"><p class="mini-label">Vidas</p><strong id="vidas">❤️❤️❤️</strong></div>
+      </header>
+      <div class="question-board">
+        <p id="theme-line" class="theme-line"></p>
+        <h2 id="question-text"></h2>
+        <div id="answers" class="answers-grid"></div>
+      </div>
+      <div id="feedback" class="feedback-panel hidden">
+        <strong id="feedback-title"></strong>
+        <p id="feedback-text"></p>
+        <button id="next-button" class="secondary-button">Próxima pergunta</button>
+      </div>
+    </section>
+
+    <section id="result-card" class="result-card hidden">
+      <p id="result-tag" class="hero-tag">Fim da partida</p>
+      <h2 id="result-title"></h2>
+      <p id="result-summary"></p>
+      <button id="restart-button" class="primary-button">Jogar de novo</button>
+    </section>
+  </main>
+
+  <audio id="bg-music" src="u_9i0vmohuwc-latidos-de-corazon-236173.mp3" loop preload="auto" autoplay playsinline style="display:none;"></audio>
+
+  <a id="back-btn" href="../index.html" title="Voltar">←</a>
+  <button id="dark-toggle" title="Modo escuro">🌙</button>
+
+  <script>
+const categorias = {
+  coracao: {
+    nome: "Medicina e Odonto", icone: "🏥",
+    perguntas: [
+      { tema: "Aquecimento: componentes do sistema", pergunta: "O sistema cardiovascular é formado por bomba, artérias, capilares e veias. Qual estrutura atua como a bomba principal do corpo?", alternativas: ["Pulmão","Coração","Fígado","Diafragma"], correta: 1, explicacao: "O coração é a bomba que impulsiona o sangue. No clima do futebol, ele é o motor do time dentro do corpo." },
+      { tema: "Primeiro toque: funções do sistema", pergunta: "Qual função depende diretamente do sistema cardiovascular durante uma corrida em campo?", alternativas: ["Levar oxigênio aos tecidos ativos","Produzir ossos longos","Controlar a cor dos olhos","Formar impressões digitais"], correta: 0, explicacao: "Uma das funções destacadas é levar oxigênio aos tecidos ativos, algo essencial quando o corpo entra em esforço." },
+      { tema: "Leitura de jogo: pressão sanguínea", pergunta: "Quais vasos realizam a troca de substâncias com os tecidos e integram a distribuição do sangue pelo corpo?", alternativas: ["Capilares","Ventrículos","Veias cavas","Valvas"], correta: 0, explicacao: "Os capilares são os vasos de troca. É neles que ocorrem as permutas entre o sangue e os tecidos." },
+      { tema: "Clássico das valvas", pergunta: "As valvas cardíacas garantem fluxo em um único sentido. Qual combinação entre valva e nome está correta?", alternativas: ["AV direita = mitral","AV esquerda = mitral ou bicúspide","Semilunar aórtica = átrio esquerdo","AV direita = pulmonar"], correta: 1, explicacao: "A valva AV esquerda é a mitral, também chamada de bicúspide. Já a AV direita é a tricúspide." },
+      { tema: "Bola na área: raciocínio anatômico", pergunta: "Se uma jogada começa no ventrículo esquerdo e segue para o corpo, por qual estrutura o sangue passa logo ao sair desse ventrículo?", alternativas: ["Tronco pulmonar","Veia cava superior","Aorta","Átrio direito"], correta: 2, explicacao: "O ventrículo esquerdo lança o sangue para a aorta. É a saída da grande circulação." },
+      { tema: "Fôlego de jogador: coronárias", pergunta: "Em que fase do ciclo cardíaco o fluxo coronariano do ventrículo esquerdo é maior?", alternativas: ["Durante o relaxamento ventricular","Durante uma febre","Durante a contração dos átrios apenas","Somente quando a pessoa corre"], correta: 0, explicacao: "No ventrículo esquerdo, o fluxo coronariano é maior na diástole (relaxamento ventricular), quando a compressão dos vasos coronários pelo miocárdio diminui." },
+      { tema: "Finalização: aplicação no futebol", pergunta: "Durante um sprint para alcançar a bola, qual resposta do sistema cardiovascular faz mais sentido para manter o desempenho do jogador?", alternativas: ["Menor entrega de oxigênio aos músculos","Maior envio de sangue aos tecidos ativos","Fechamento permanente das coronárias","Parada temporária do coração"], correta: 1, explicacao: "Em esforço intenso, o sistema cardiovascular aumenta a entrega de sangue e oxigênio aos músculos ativos para sustentar a jogada." },
+      { tema: "Câmaras do coração", pergunta: "Qual câmara do coração recebe o sangue oxigenado proveniente dos pulmões?", alternativas: ["Ventrículo direito","Átrio direito","Átrio esquerdo","Ventrículo esquerdo"], correta: 2, explicacao: "O átrio esquerdo recebe o sangue rico em oxigênio vindo das veias pulmonares. Em seguida, ele passa para o ventrículo esquerdo, que o bombeia para o corpo." },
+      { tema: "Frequência cardíaca", pergunta: "Qual é a faixa de frequência cardíaca considerada normal em repouso para um adulto saudável?", alternativas: ["20 a 40 bpm","40 a 59 bpm","60 a 100 bpm","110 a 140 bpm"], correta: 2, explicacao: "A frequência cardíaca normal em repouso varia de 60 a 100 batimentos por minuto (bpm). Atletas podem ter valores mais baixos, em torno de 50 bpm." },
+      { tema: "Sistema elétrico do coração", pergunta: "Qual estrutura é responsável por iniciar o impulso elétrico que desencadeia cada batimento cardíaco?", alternativas: ["Nodo atrioventricular (NAV)","Feixe de His","Fibras de Purkinje","Nodo sinoatrial (NSA)"], correta: 3, explicacao: "O nodo sinoatrial (NSA), localizado no átrio direito, é o marcapasso natural do coração. Ele gera o impulso elétrico que comanda cada ciclo cardíaco." },
+      { tema: "Pressão arterial", pergunta: "O que representa o valor 'sistólico' em uma medição de pressão arterial como 120/80 mmHg?", alternativas: ["A pressão durante o relaxamento ventricular","A resistência das veias ao fluxo","A pressão durante a contração ventricular","O volume de sangue no átrio"], correta: 2, explicacao: "O valor sistólico (120 no exemplo) é a pressão máxima gerada durante a contração dos ventrículos. O valor diastólico (80) é a pressão mínima, no relaxamento." },
+      { tema: "Débito cardíaco", pergunta: "O débito cardíaco é definido como:", alternativas: ["A quantidade de oxigênio consumida por minuto","O volume de sangue bombeado pelo coração por minuto","A resistência dos vasos ao fluxo sanguíneo","O número de valvas abertas simultaneamente"], correta: 1, explicacao: "Débito cardíaco = volume sistólico × frequência cardíaca. Em repouso, um adulto bomba cerca de 5 litros por minuto." },
+      { tema: "Grande e pequena circulação", pergunta: "Na pequena circulação (circulação pulmonar), qual vaso transporta sangue desoxigenado do coração aos pulmões?", alternativas: ["Aorta","Veia pulmonar","Tronco pulmonar","Veia cava inferior"], correta: 2, explicacao: "O tronco pulmonar parte do ventrículo direito e leva o sangue desoxigenado aos pulmões. As veias pulmonares fazem o retorno do sangue oxigenado ao átrio esquerdo." },
+      { tema: "Vasos sanguíneos", pergunta: "Por que as artérias possuem paredes mais espessas e elásticas do que as veias?", alternativas: ["Para facilitar a absorção de nutrientes","Para suportar a alta pressão gerada pelo bombeamento cardíaco","Para permitir a difusão de gases diretamente","Para armazenar o sangue durante o repouso"], correta: 1, explicacao: "As artérias recebem o sangue diretamente dos ventrículos sob alta pressão. Suas paredes espessas e elásticas suportam e suavizam essa pressão ao longo do percurso." },
+      { tema: "Câmaras cardíacas", pergunta: "Quantas câmaras tem o coração humano?", alternativas: ["2","3","4","6"], correta: 2, explicacao: "O coração humano possui 4 câmaras: átrio direito, átrio esquerdo, ventrículo direito e ventrículo esquerdo. Juntas, coordenam o bombeamento do sangue." },
+      { tema: "Ciclo cardíaco", pergunta: "O que é a sístole ventricular?", alternativas: ["O relaxamento dos ventrículos","A contração dos ventrículos que expulsa o sangue","O preenchimento dos átrios com sangue","A abertura das valvas atrioventriculares"], correta: 1, explicacao: "A sístole é a fase de contração dos ventrículos. Durante ela, o sangue é ejetado para a aorta (ventrículo esquerdo) e para o tronco pulmonar (ventrículo direito)." },
+      { tema: "Ciclo cardíaco", pergunta: "O que é a diástole?", alternativas: ["A contração máxima do músculo cardíaco","O período de relaxamento e enchimento das câmaras","A fase em que as valvas semilunares estão abertas","O aumento da pressão arterial"], correta: 1, explicacao: "A diástole é o período de relaxamento das câmaras cardíacas, quando elas se enchem de sangue para o próximo ciclo de contração." },
+      { tema: "Patologias cardiovasculares", pergunta: "O que é o infarto agudo do miocárdio?", alternativas: ["Uma inflamação do pericárdio","A morte de células do músculo cardíaco por falta de irrigação sanguínea","Um aumento anormal da frequência cardíaca","Uma malformação congênita do septo"], correta: 1, explicacao: "O infarto ocorre quando uma artéria coronária é bloqueada, interrompendo o fornecimento de sangue ao miocárdio. Sem oxigênio, as células cardíacas morrem." },
+      { tema: "Patologias cardiovasculares", pergunta: "O que é aterosclerose?", alternativas: ["Dilatação excessiva das veias","Acúmulo de placas de gordura na parede das artérias","Inflamação das válvulas cardíacas","Redução do volume de sangue circulante"], correta: 1, explicacao: "A aterosclerose é o depósito de placas de lipídios na parede interna das artérias, estreitando o vaso e aumentando o risco de infarto e AVC." },
+      { tema: "Frequência cardíaca", pergunta: "O que é bradicardia?", alternativas: ["Frequência cardíaca acima de 100 bpm em repouso","Frequência cardíaca abaixo de 60 bpm em repouso","Batimento cardíaco irregular","Pressão arterial muito elevada"], correta: 1, explicacao: "Bradicardia é a frequência cardíaca inferior a 60 bpm em repouso. Em atletas pode ser normal, mas em outras pessoas pode indicar problemas no sistema de condução elétrica." },
+      { tema: "Sangue e composição", pergunta: "Qual tipo sanguíneo é considerado doador universal de concentrado de hemácias?", alternativas: ["A+","B-","O-","AB+"], correta: 2, explicacao: "O tipo O- é considerado doador universal para concentrado de hemácias porque não apresenta antígenos A, B nem Rh(D) na superfície das hemácias." },
+      { tema: "Sangue e composição", pergunta: "Qual é a principal função das plaquetas no sangue?", alternativas: ["Transportar oxigênio aos tecidos","Combater infecções bacterianas","Participar da coagulação sanguínea","Produzir anticorpos"], correta: 2, explicacao: "As plaquetas (trombócitos) são fundamentais para a hemostasia, ou seja, a coagulação do sangue para estancar hemorragias." },
+      { tema: "Sangue e composição", pergunta: "O que é a hemoglobina?", alternativas: ["Uma proteína dos glóbulos brancos que combate infecções","Uma proteína dos glóbulos vermelhos responsável pelo transporte de oxigênio","Um hormônio produzido pelo coração","Uma enzima que regula a pressão arterial"], correta: 1, explicacao: "A hemoglobina é uma proteína presente nos eritrócitos que se liga ao oxigênio nos pulmões e o transporta para os tecidos do corpo." },
+      { tema: "Hipertensão arterial", pergunta: "A partir de qual valor de pressão sistólica se considera hipertensão arterial em adultos?", alternativas: ["110 mmHg","120 mmHg","130 mmHg","140 mmHg"], correta: 3, explicacao: "Considera-se hipertensão quando a pressão sistólica é igual ou superior a 140 mmHg e/ou a diastólica igual ou superior a 90 mmHg, em medições repetidas." },
+      { tema: "Sistema elétrico cardíaco", pergunta: "O que registra um eletrocardiograma (ECG)?", alternativas: ["O volume de sangue bombeado pelo coração","A atividade elétrica do coração ao longo do tempo","A pressão dentro das câmaras cardíacas","O nível de oxigênio no sangue arterial"], correta: 1, explicacao: "O ECG registra os impulsos elétricos que percorrem o coração a cada ciclo cardíaco. É usado para diagnosticar arritmias, infartos e outras condições cardíacas." },
+      { tema: "Hormônios e coração", pergunta: "Qual hormônio acelera os batimentos cardíacos em situações de estresse ou perigo?", alternativas: ["Insulina","Cortisol","Adrenalina (epinefrina)","Glucagon"], correta: 2, explicacao: "A adrenalina é o hormônio do 'luta ou fuga'. Ela aumenta a frequência e a força dos batimentos cardíacos preparando o organismo para emergências." },
+      { tema: "Anatomia cardíaca", pergunta: "Qual é a função do septo interventricular?", alternativas: ["Bombear sangue para a aorta","Separar o átrio direito do esquerdo","Separar o ventrículo direito do esquerdo, impedindo mistura de sangues","Controlar a abertura da valva mitral"], correta: 2, explicacao: "O septo interventricular é a parede muscular que divide os dois ventrículos, garantindo que o sangue oxigenado não se misture com o desoxigenado." },
+      { tema: "Exercício e sistema cardiovascular", pergunta: "Qual efeito o exercício físico aeróbio regular produz sobre a frequência cardíaca de repouso?", alternativas: ["Aumenta progressivamente a frequência cardíaca em repouso","Diminui a frequência cardíaca em repouso por tornar o coração mais eficiente","Não tem nenhum efeito sobre a frequência cardíaca em repouso","Causa taquicardia permanente"], correta: 1, explicacao: "Com o treino aeróbio regular, o coração se torna mais forte e eficiente, conseguindo bombear o mesmo volume de sangue com menos batimentos." },
+      { tema: "Patologias cardiovasculares", pergunta: "O que é fibrilação ventricular?", alternativas: ["Batimentos ventriculares lentos e regulares","Contrações ventriculares caóticas que impedem o bombeamento do sangue","Inflamação da parede ventricular","Estreitamento da valva pulmonar"], correta: 1, explicacao: "A fibrilação ventricular é uma arritmia grave em que os ventrículos se contraem de forma caótica, tornando o coração incapaz de bombear sangue. Exige desfibrilação imediata." },
+      { tema: "Valvas cardíacas", pergunta: "Qual é a função das valvas semilunares (aórtica e pulmonar)?", alternativas: ["Controlar o fluxo entre átrios e ventrículos","Impedir o refluxo de sangue dos grandes vasos de volta aos ventrículos","Bombear o sangue para os pulmões","Regular a pressão dentro dos átrios"], correta: 1, explicacao: "As valvas semilunares abrem na sístole para deixar o sangue sair dos ventrículos e fecham na diástole para impedir que o sangue retorne ao coração." },
+      { tema: "Anatomia cardíaca", pergunta: "Qual membrana envolve e protege externamente o coração?", alternativas: ["Endocárdio","Miocárdio","Pericárdio","Peritônio"], correta: 2, explicacao: "O pericárdio é o saco fibro-seroso que envolve e protege o coração, reduzindo o atrito com os órgãos vizinhos durante os batimentos." },
+      { tema: "Circulação coronariana", pergunta: "O que são as artérias coronárias?", alternativas: ["Artérias que levam sangue do coração ao cérebro","Vasos que irrigam o próprio músculo cardíaco com sangue oxigenado","Veias que retornam sangue venoso ao coração","Artérias que partem do átrio esquerdo"], correta: 1, explicacao: "As artérias coronárias ramificam-se da aorta e fornecem sangue oxigenado ao miocárdio. O bloqueio dessas artérias causa o infarto." },
+      { tema: "Odontologia: anatomia dental", pergunta: "Qual é o tecido mais duro do corpo humano, que recobre a coroa dos dentes?", alternativas: ["Dentina","Cemento","Esmalte","Polpa"], correta: 2, explicacao: "O esmalte dental é o tecido mais duro do organismo. Ele recobre a coroa do dente e o protege contra o desgaste mecânico e ácidos produzidos pelas bactérias." },
+      { tema: "Odontologia: cárie dentária", pergunta: "Qual é o principal agente causador da cárie dental?", alternativas: ["Vírus herpes simples","Bactéria Streptococcus mutans","Fungo Candida albicans","Bactéria Staphylococcus aureus"], correta: 1, explicacao: "O Streptococcus mutans é a bactéria mais associada à cárie. Ela fermenta açúcares e produz ácidos que desmineralizam o esmalte dental." },
+      { tema: "Odontologia: periodontia", pergunta: "O que é a doença periodontal (periodontite)?", alternativas: ["Infecção viral que afeta a polpa dentária","Inflamação e destruição dos tecidos de suporte do dente, incluindo osso alveolar","Desgaste do esmalte por atrito","Escurecimento dos dentes por pigmentos alimentares"], correta: 1, explicacao: "A periodontite é uma doença inflamatória crônica causada por bactérias que destroem a gengiva, o ligamento periodontal e o osso alveolar, podendo levar à perda dentária." },
+      { tema: "Odontologia: dentição", pergunta: "Quantos dentes permanentes tem um adulto com dentição completa (incluindo os sisos)?", alternativas: ["28","30","32","36"], correta: 2, explicacao: "A dentição permanente completa é formada por 32 dentes: 8 incisivos, 4 caninos, 8 pré-molares e 12 molares (incluindo os 4 sisos ou terceiros molares)." },
+      { tema: "Odontologia: saúde bucal e sistêmica", pergunta: "Qual das alternativas descreve corretamente a relação entre saúde bucal e doenças cardiovasculares?", alternativas: ["Não existe qualquer relação entre saúde bucal e doenças cardíacas","Bactérias da periodontite podem entrar na corrente sanguínea e aumentar o risco de endocardite e aterosclerose","A cárie dental causa diretamente infarto do miocárdio","Doenças cardíacas protegem contra infecções bucais"], correta: 1, explicacao: "Bactérias periodontais podem entrar na corrente sanguínea (bacteremia) e contribuir para inflamação sistêmica, endocardite infecciosa e aterosclerose, evidenciando a conexão entre saúde bucal e cardiovascular." },
+      { tema: "Odontologia: fluoreto", pergunta: "Qual é o principal mecanismo de ação do flúor na prevenção da cárie dental?", alternativas: ["Elimina todas as bactérias da boca","Aumenta a dureza do esmalte incorporando-se à sua estrutura, tornando-o mais resistente aos ácidos","Branqueia os dentes quimicamente","Substitui o esmalte danificado por um novo tecido"], correta: 1, explicacao: "O flúor se incorpora à estrutura cristalina do esmalte formando fluorapatita, que é mais resistente à dissolução ácida causada pelas bactérias cariogênicas." },
+      { tema: "Medicina: farmacologia básica", pergunta: "Qual classe de medicamentos reduz a pressão arterial ao bloquear diretamente os receptores da angiotensina II (AT1)?", alternativas: ["Betabloqueadores","Bloqueadores dos canais de cálcio","Bloqueadores dos receptores de angiotensina II (BRA)","Anti-inflamatórios não esteroidais (AINEs)"], correta: 2, explicacao: "Os BRA (como a losartana) bloqueiam os receptores AT1 da angiotensina II, reduzindo vasoconstrição e secreção de aldosterona. Com isso, ajudam no controle da pressão arterial e na proteção de órgãos-alvo." },
+      { tema: "Medicina: semiologia", pergunta: "O que avalia a ausculta cardíaca com estetoscópio?", alternativas: ["O volume de sangue nos vasos periféricos","Os sons produzidos pelo fechamento das valvas cardíacas e possíveis sopros","A frequência respiratória do paciente","A quantidade de oxigênio no sangue arterial"], correta: 1, explicacao: "A ausculta cardíaca identifica as bulhas cardíacas (B1 e B2), geradas pelo fechamento das valvas, e detecta sopros, arritmias e outras alterações que podem indicar doenças valvares ou congênitas." }
+    ]
+  },
+  futebol: {
+    nome: "Futebol", icone: "⚽",
+    perguntas: [
+      { tema: "Regras do jogo", pergunta: "Quantos jogadores cada time coloca em campo em uma partida oficial de futebol?", alternativas: ["9","10","11","12"], correta: 2, explicacao: "Cada equipe tem 11 jogadores em campo, incluindo o goleiro. Essa é uma das regras básicas do futebol estabelecidas pela FIFA." },
+      { tema: "Regras do jogo", pergunta: "Qual é a duração oficial de uma partida de futebol?", alternativas: ["80 minutos","90 minutos","100 minutos","120 minutos"], correta: 1, explicacao: "Uma partida oficial de futebol tem 90 minutos, divididos em dois tempos de 45 minutos cada." },
+      { tema: "Regras do jogo", pergunta: "O que é um pênalti no futebol?", alternativas: ["Falta cometida fora da área","Cobrança de falta dentro da área adversária","Falta cometida dentro da grande área que resulta em chute a gol de 11 metros","Gol marcado de longe"], correta: 2, explicacao: "O pênalti é cobrado quando ocorre uma infração dentro da grande área. O jogador chuta da marca de 11 metros diretamente para o gol, com apenas o goleiro na defesa." },
+      { tema: "Copa do Mundo", pergunta: "Qual seleção é a maior vencedora da Copa do Mundo FIFA?", alternativas: ["Alemanha","Argentina","Itália","Brasil"], correta: 3, explicacao: "O Brasil é pentacampeão mundial, vencendo as Copas de 1958, 1962, 1970, 1994 e 2002, sendo a seleção mais vencedora da história." },
+      { tema: "Copa do Mundo", pergunta: "Em que país foi realizada a primeira Copa do Mundo de futebol, em 1930?", alternativas: ["Brasil","França","Uruguai","Argentina"], correta: 2, explicacao: "A primeira Copa do Mundo foi realizada no Uruguai em 1930, e a seleção uruguaia sagrou-se campeã em seu próprio país." },
+      { tema: "Posições e táticas", pergunta: "Qual a função principal do jogador que atua como goleiro?", alternativas: ["Marcar gols","Impedir que a bola entre na própria meta","Distribuir o jogo pelo meio-campo","Cobrar escanteios"], correta: 1, explicacao: "O goleiro é o único jogador que pode usar as mãos dentro da grande área e sua principal função é defender o gol, impedindo que o adversário marque." },
+      { tema: "Regras do jogo", pergunta: "O que acontece quando a bola cruza totalmente a linha lateral do campo?", alternativas: ["Pênalti","Escanteio","Lateral","Tiro de meta"], correta: 2, explicacao: "Quando a bola sai completamente pela linha lateral, é cobrada uma cobrança de lateral pelo time adversário ao que tocou por último na bola." },
+      { tema: "Lendas do futebol", pergunta: "Qual jogador brasileiro é conhecido mundialmente como 'O Rei do Futebol'?", alternativas: ["Ronaldo","Zico","Pelé","Romário"], correta: 2, explicacao: "Pelé é o único jogador tricampeão mundial (1958, 1962 e 1970) e é reconhecido pela FIFA como o maior jogador de todos os tempos, recebendo o título de 'Rei do Futebol'." },
+      { tema: "Regras do jogo", pergunta: "Quantas substituições são permitidas a cada equipe em uma partida oficial da FIFA atualmente?", alternativas: ["3","4","5","6"], correta: 2, explicacao: "Desde 2020, a FIFA adotou permanentemente a regra de até 5 substituições por equipe em competições oficiais." },
+      { tema: "Regras do jogo", pergunta: "O que caracteriza a posição de impedimento no futebol?", alternativas: ["O atacante estar atrás da bola no momento do passe","O atacante estar mais próximo da linha de fundo adversária do que a bola e o penúltimo defensor no momento do passe","O atacante tocar a bola com a mão","O atacante estar dentro da área adversária"], correta: 1, explicacao: "Em regra, há impedimento quando o jogador está à frente da bola e do penúltimo defensor no momento do passe, no campo adversário, e participa da jogada." },
+      { tema: "Copa do Mundo", pergunta: "Qual país sediou a Copa do Mundo FIFA de 2014?", alternativas: ["Argentina","Alemanha","África do Sul","Brasil"], correta: 3, explicacao: "O Brasil sediou a Copa de 2014. A final foi disputada no Maracanã, com a Alemanha vencendo a Argentina por 1 a 0 na prorrogação." },
+      { tema: "Regras do jogo", pergunta: "Quando é cobrado um escanteio?", alternativas: ["Quando o atacante toca por último e a bola sai pela linha de fundo","Quando o defensor toca por último e a bola sai pela linha lateral","Quando o defensor toca por último e a bola sai pela linha de fundo","Quando a bola bate no poste e sai"], correta: 2, explicacao: "O escanteio é cobrado quando um jogador da equipe defensora toca por último na bola antes que ela ultrapasse completamente a linha de fundo." },
+      { tema: "Clubes e competições", pergunta: "Qual clube europeu é o maior vencedor da UEFA Champions League?", alternativas: ["Real Madrid","Barcelona","Bayern de Munique","Juventus"], correta: 0, explicacao: "O Real Madrid é o clube com mais títulos da Champions League/Copa dos Campeões da Europa." },
+      { tema: "Curiosidades", pergunta: "O que é um 'hat-trick' no futebol?", alternativas: ["Um passe que resulta diretamente em gol","Uma defesa difícil do goleiro","Três gols marcados pelo mesmo jogador em uma única partida","Um drible especial com três toques"], correta: 2, explicacao: "Hat-trick é quando um jogador marca três gols em uma mesma partida." },
+      { tema: "Copa do Mundo", pergunta: "Qual país venceu a Copa do Mundo FIFA de 2022, realizada no Qatar?", alternativas: ["França","Brasil","Argentina","Croácia"], correta: 2, explicacao: "A Argentina venceu a Copa de 2022 no Qatar, derrotando a França nos pênaltis na final. Foi o terceiro título mundial argentino." },
+      { tema: "Artilheiros", pergunta: "Quem é o maior artilheiro da história das Copas do Mundo?", alternativas: ["Pelé","Ronaldo (brasileiro)","Miroslav Klose","Gerd Müller"], correta: 2, explicacao: "Miroslav Klose, atacante alemão, é o maior artilheiro da história das Copas do Mundo, com 16 gols em quatro edições do torneio (2002–2014)." },
+      { tema: "Tecnologia no futebol", pergunta: "O que é o VAR no futebol?", alternativas: ["Um sistema de pontuação alternativo","Video Assistant Referee – árbitro de vídeo que revisa lances polêmicos","Um tipo de formação tática defensiva","Um índice de avaliação de jogadores"], correta: 1, explicacao: "O VAR (Video Assistant Referee) é um sistema de revisão de vídeo que auxilia o árbitro em lances decisivos como gols, pênaltis e cartões vermelhos." },
+      { tema: "Dimensões do campo", pergunta: "Qual é a largura oficial da baliza (gol) no futebol de campo?", alternativas: ["5,5 metros","6,32 metros","7,32 metros","8 metros"], correta: 2, explicacao: "O gol oficial tem 7,32 metros de largura e 2,44 metros de altura, medidas padronizadas pela FIFA para todas as competições oficiais." },
+      { tema: "Copa do Mundo", pergunta: "Qual seleção venceu a Copa do Mundo de 2018, realizada na Rússia?", alternativas: ["Alemanha","França","Croácia","Bélgica"], correta: 1, explicacao: "A França venceu a Copa de 2018, derrotando a Croácia por 4 a 2 na final em Moscou. Foi o segundo título mundial francês." },
+      { tema: "Futebol brasileiro", pergunta: "Qual é o maior estádio do Brasil em capacidade?", alternativas: ["Maracanã","Morumbi","Arena Corinthians","Mineirão"], correta: 0, explicacao: "O Maracanã, no Rio de Janeiro, é o maior estádio do Brasil, com capacidade atual de cerca de 78.000 torcedores." },
+      { tema: "Lendas do futebol", pergunta: "Qual jogador argentino venceu a Copa do Mundo em 2022 e é apontado por muitos como o melhor da história?", alternativas: ["Diego Maradona","Gabriel Batistuta","Lionel Messi","Sergio Agüero"], correta: 2, explicacao: "Lionel Messi completou sua carreira vencendo a Copa de 2022 com a Argentina. Com múltiplas Bolas de Ouro e títulos, é apontado por muitos como o maior da história." },
+      { tema: "Futebol brasileiro", pergunta: "Quantas vezes o Brasil venceu a Copa do Mundo FIFA?", alternativas: ["3","4","5","6"], correta: 2, explicacao: "O Brasil é pentacampeão: 1958, 1962, 1970, 1994 e 2002. É a única seleção com 5 títulos." },
+      { tema: "Lendas do futebol", pergunta: "Quem é o maior artilheiro da história da seleção brasileira?", alternativas: ["Pelé","Ronaldo","Neymar","Zico"], correta: 2, explicacao: "Neymar é o maior artilheiro da seleção brasileira, superando o recorde de Pelé ao atingir mais de 77 gols com a camisa verde e amarela." },
+      { tema: "Arbitragem", pergunta: "O que significa o cartão amarelo no futebol?", alternativas: ["Expulsão imediata do campo","Advertência ao jogador por falta grave ou conduta antidesportiva","Substituição obrigatória do jogador","Penalidade de 5 minutos fora do jogo"], correta: 1, explicacao: "O cartão amarelo é uma advertência formal. Dois cartões amarelos na mesma partida resultam em expulsão automática." },
+      { tema: "Futebol feminino", pergunta: "Qual seleção feminina é a maior vencedora da Copa do Mundo Feminina da FIFA?", alternativas: ["Brasil","Alemanha","Noruega","Estados Unidos"], correta: 3, explicacao: "A seleção feminina dos Estados Unidos é a maior campeã da Copa do Mundo Feminina, com quatro títulos: 1991, 1999, 2015 e 2019." },
+      { tema: "Futebol brasileiro", pergunta: "Qual clube brasileiro tem mais títulos do Campeonato Brasileiro (Série A)?", alternativas: ["São Paulo","Santos","Flamengo","Palmeiras"], correta: 3, explicacao: "O Palmeiras é o maior campeão do Campeonato Brasileiro, com mais de 11 títulos da Série A ao longo de sua história." },
+      { tema: "História do futebol", pergunta: "Em que país o futebol moderno teve suas regras oficiais codificadas pela primeira vez?", alternativas: ["Brasil","Alemanha","França","Inglaterra"], correta: 3, explicacao: "As regras oficiais do futebol moderno foram estabelecidas na Inglaterra em 1863, com a fundação da Football Association (FA)." },
+      { tema: "Clubes e competições", pergunta: "Como se chama a principal competição de futebol entre clubes da América do Sul?", alternativas: ["Copa Libertadores","Copa Sul-Americana","Copa América","Recopa Sul-Americana"], correta: 0, explicacao: "A Copa Libertadores da América é a principal competição de clubes da CONMEBOL, equivalente à Champions League europeia." },
+      { tema: "Copa do Mundo", pergunta: "Qual foi o resultado do jogo entre Brasil e Alemanha na semifinal da Copa de 2014?", alternativas: ["Brasil 1 x 7 Alemanha","Brasil 0 x 4 Alemanha","Brasil 2 x 5 Alemanha","Brasil 3 x 6 Alemanha"], correta: 0, explicacao: "O 'Mineirazo': a Alemanha goleou o Brasil por 7 a 1 na semifinal da Copa de 2014, no Estádio Mineirão." },
+      { tema: "Futebol brasileiro", pergunta: "Em que ano o Brasil venceu sua primeira Copa do Mundo?", alternativas: ["1950","1954","1958","1962"], correta: 2, explicacao: "O Brasil conquistou seu primeiro título mundial em 1958, na Suécia. Pelé, com apenas 17 anos, foi um dos grandes destaques do torneio." },
+      { tema: "Futebol brasileiro", pergunta: "Qual clube do Rio de Janeiro é o maior vencedor do Campeonato Carioca?", alternativas: ["Vasco da Gama","Fluminense","Botafogo","Flamengo"], correta: 3, explicacao: "O Flamengo é o maior campeão do Campeonato Carioca com mais de 38 títulos, sendo também um dos clubes com maior torcida do Brasil." }
+    ]
+  },
+  ensinomedio: {
+    nome: "Ensino Médio", icone: "📚",
+    perguntas: [
+      { tema: "Matemática", pergunta: "Qual é o valor de x na equação 2x + 6 = 18?", alternativas: ["4","5","6","7"], correta: 2, explicacao: "Isolando x: 2x = 18 − 6 = 12, portanto x = 6." },
+      { tema: "Português", pergunta: "Identifique a oração subordinada adverbial causal em: 'Ficou em casa porque estava doente.'", alternativas: ["'Ficou em casa'.","'porque estava doente'.","A oração não tem subordinada adverbial.","'estava doente' apenas."], correta: 1, explicacao: "A conjunção 'porque' introduz uma oração adverbial causal, indicando a causa do fato expresso na oração principal." },
+      { tema: "História", pergunta: "Qual evento marcou o início da Primeira Guerra Mundial em 1914?", alternativas: ["A Revolução Russa","A invasão da Polônia pela Alemanha","O assassinato do arquiduque Francisco Fernando","A queda da Bolsa de Nova Iorque"], correta: 2, explicacao: "O assassinato do arquiduque Francisco Fernando, herdeiro austro-húngaro, em Sarajevo, serviu de estopim para a Primeira Guerra Mundial." },
+      { tema: "Química", pergunta: "Na reação 4Fe + 3O₂ → 2Fe₂O₃, quantas moléculas de O₂ aparecem?", alternativas: ["2","3","4","6"], correta: 1, explicacao: "Na equação balanceada 4Fe + 3O₂ → 2Fe₂O₃, o coeficiente do O₂ é 3, indicando 3 moléculas de gás oxigênio participando da reação." },
+      { tema: "Biologia", pergunta: "Qual é a função principal do DNA nas células?", alternativas: ["Produzir energia para a célula","Armazenar e transmitir informações genéticas","Transportar oxigênio no sangue","Sintetizar lipídios para a membrana"], correta: 1, explicacao: "O DNA armazena as instruções genéticas necessárias para o desenvolvimento, funcionamento e reprodução de todos os organismos vivos." },
+      { tema: "Física", pergunta: "Qual é a unidade de medida da força no Sistema Internacional (SI)?", alternativas: ["Joule","Watt","Newton","Pascal"], correta: 2, explicacao: "A força é medida em Newton (N) no SI. 1 N = 1 kg·m/s², conforme a Segunda Lei de Newton." },
+      { tema: "Geografia", pergunta: "Qual é o maior bioma do Brasil?", alternativas: ["Cerrado","Pantanal","Amazônia","Caatinga"], correta: 2, explicacao: "A Amazônia é o maior bioma do Brasil, cobrindo cerca de 49% do território nacional, e abriga a maior floresta tropical do mundo." },
+      { tema: "Matemática", pergunta: "Qual é o valor aproximado de π (pi)?", alternativas: ["2,71","3,14","1,41","1,73"], correta: 1, explicacao: "Pi (π) é uma constante matemática que representa a razão entre o comprimento de uma circunferência e seu diâmetro, aproximadamente igual a 3,14159." },
+      { tema: "História do Brasil", pergunta: "Em que ano o Brasil proclamou sua independência?", alternativas: ["1808","1822","1889","1900"], correta: 1, explicacao: "O Brasil proclamou sua independência de Portugal em 7 de setembro de 1822, quando D. Pedro I declarou o célebre 'Grito do Ipiranga'." },
+      { tema: "Biologia", pergunta: "O que é fotossíntese?", alternativas: ["Processo de respiração celular dos animais","Processo pelo qual as plantas produzem glicose a partir de luz solar, água e CO₂","Decomposição de matéria orgânica por fungos","Absorção de nutrientes pelas raízes"], correta: 1, explicacao: "A fotossíntese é o processo realizado por plantas e algas que converte energia luminosa em energia química (glicose), usando água e gás carbônico." },
+      { tema: "Física", pergunta: "O que é inércia?", alternativas: ["A força que atrai dois corpos com massa","A tendência de um corpo de resistir a mudanças em seu estado de movimento","A energia cinética de um corpo em movimento","A aceleração gerada por uma força resultante"], correta: 1, explicacao: "Inércia é a propriedade dos corpos de resistir a alterações em seu estado de repouso ou de movimento uniforme em linha reta, conforme a Primeira Lei de Newton." },
+      { tema: "Química", pergunta: "Qual é o símbolo químico do ouro?", alternativas: ["Go","Or","Au","Ag"], correta: 2, explicacao: "O símbolo Au vem do latim 'aurum'. O ouro é um metal precioso com número atômico 79." },
+      { tema: "Geografia", pergunta: "Qual é o oceano que banha a costa brasileira?", alternativas: ["Oceano Índico","Oceano Pacífico","Oceano Atlântico","Oceano Ártico"], correta: 2, explicacao: "O Brasil é banhado pelo Oceano Atlântico em sua extensa costa de aproximadamente 7.491 km." },
+      { tema: "Português", pergunta: "O que é um substantivo?", alternativas: ["Palavra que modifica o verbo","Palavra que exprime ação, estado ou fenômeno","Palavra que nomeia seres, objetos, sentimentos e conceitos","Palavra que indica qualidade ou estado do substantivo"], correta: 2, explicacao: "O substantivo é a classe gramatical que dá nome aos seres: pessoas, animais, objetos, sentimentos, lugares, ideias e conceitos." },
+      { tema: "Matemática", pergunta: "Qual é a área de um quadrado com lado de 5 cm?", alternativas: ["10 cm²","20 cm²","25 cm²","50 cm²"], correta: 2, explicacao: "Área do quadrado = lado². Portanto, 5² = 25 cm²." }
+    ]
+  },
+  informatica: {
+    nome: "Concurso Público", icone: "💻",
+    perguntas: [
+      { tema: "Sistemas operacionais", pergunta: "Qual atalho de teclado é usado para copiar no Windows e Linux?", alternativas: ["Ctrl + V","Ctrl + X","Ctrl + C","Ctrl + Z"], correta: 2, explicacao: "Ctrl + C copia o conteúdo selecionado para a área de transferência. Ctrl + V cola, Ctrl + X recorta e Ctrl + Z desfaz a ação." },
+      { tema: "Internet", pergunta: "O que significa a sigla HTTP?", alternativas: ["HyperText Transfer Protocol","High Technology Transfer Program","Home Tool Transfer Process","HyperText Typing Program"], correta: 0, explicacao: "HTTP (HyperText Transfer Protocol) é o protocolo de comunicação usado para transferência de dados na web entre cliente (navegador) e servidor." },
+      { tema: "Segurança", pergunta: "O que é um firewall?", alternativas: ["Um tipo de vírus que danifica arquivos","Um sistema de segurança que monitora e controla o tráfego de rede","Um programa para acelerar a internet","Um tipo de cabo de rede de alta velocidade"], correta: 1, explicacao: "O firewall é uma barreira de segurança que monitora e filtra o tráfego de rede, bloqueando acessos não autorizados e protegendo sistemas contra ameaças externas." },
+      { tema: "Office", pergunta: "No Excel, como se inicia uma fórmula?", alternativas: ["Com o sinal #","Com o sinal =","Com o sinal @","Com o sinal $"], correta: 1, explicacao: "No Excel, todas as fórmulas começam com o sinal de igual (=). Sem esse sinal, o conteúdo é tratado como texto ou número." },
+      { tema: "Internet", pergunta: "O que é phishing?", alternativas: ["Um tipo de antivírus gratuito","Tentativa de enganar usuários para obter informações confidenciais através de páginas ou mensagens falsas","Um protocolo de transferência de arquivos","Um método de compressão de dados"], correta: 1, explicacao: "Phishing é uma técnica de engenharia social onde criminosos criam páginas ou mensagens falsas para roubar senhas, dados bancários e informações pessoais." },
+      { tema: "Hardware", pergunta: "O que é a RAM?", alternativas: ["Um tipo de processador central","Memória de acesso aleatório usada para armazenar dados temporários em uso","Um dispositivo de armazenamento permanente","Um tipo de placa de vídeo"], correta: 1, explicacao: "RAM (Random Access Memory) é a memória principal do computador, onde são armazenados temporariamente os dados e programas em uso. É volátil: perde dados ao desligar." },
+      { tema: "Conceitos", pergunta: "O que é software?", alternativas: ["Os componentes físicos do computador","Os programas e sistemas que comandam o hardware e permitem ao usuário realizar tarefas","A placa de rede do computador","O monitor do computador"], correta: 1, explicacao: "Software é o conjunto de programas, instruções e dados que fazem o hardware funcionar. Exemplos: sistemas operacionais, aplicativos, jogos." },
+      { tema: "Redes", pergunta: "O que é Wi-Fi?", alternativas: ["Um tipo de cabo de internet de alta velocidade","Tecnologia de rede sem fio para conexão à internet usando ondas de rádio","Um protocolo de segurança de rede","Um tipo de provedor de internet"], correta: 1, explicacao: "Wi-Fi é uma tecnologia de rede local sem fio (WLAN) baseada no padrão IEEE 802.11. Permite conexão à internet e comunicação entre dispositivos sem cabos." },
+      { tema: "Office", pergunta: "No Excel, o que faz a função PROCV (VLOOKUP)?", alternativas: ["Soma os valores de uma coluna inteira","Procura um valor na primeira coluna de uma tabela e retorna um valor de outra coluna na mesma linha","Conta células não vazias em um intervalo","Calcula a variância de um conjunto de dados"], correta: 1, explicacao: "PROCV busca um valor na primeira coluna de uma tabela e retorna o correspondente de outra coluna especificada. É uma das funções mais cobradas em concursos." },
+      { tema: "Conceitos", pergunta: "O que é software de código aberto (open source)?", alternativas: ["Um software gratuito, mas cujo código não pode ser modificado","Um software cujo código-fonte é disponibilizado publicamente, permitindo uso, modificação e distribuição","Um tipo de software exclusivo para governo","Um software sem suporte técnico disponível"], correta: 1, explicacao: "Software open source tem o código-fonte disponível para qualquer pessoa ver, modificar e distribuir. Exemplos: Linux, Firefox, LibreOffice." },
+      { tema: "Internet", pergunta: "O que é um protocolo de internet?", alternativas: ["Um cabo de conexão de alta velocidade","Um conjunto de regras que define como os dados são transmitidos e recebidos em uma rede","Um tipo de sistema operacional de rede","Um programa de gerenciamento de e-mails"], correta: 1, explicacao: "Um protocolo é um conjunto padronizado de regras que permite comunicação entre dispositivos. Exemplos: HTTP (web), SMTP (e-mail), TCP/IP (base da internet)." },
+      { tema: "Segurança", pergunta: "O que é criptografia?", alternativas: ["O processo de compressão de arquivos para economizar espaço","O processo de transformar dados legíveis em formato codificado, ilegível sem a chave correta","Um método de backup de dados em nuvem","Um protocolo para transferência de arquivos grandes"], correta: 1, explicacao: "Criptografia transforma informações em formato ilegível (cifrado) usando algoritmos matemáticos. Somente quem possui a chave correta pode decifrar os dados originais." },
+      { tema: "Conceitos", pergunta: "O que é backup?", alternativas: ["A exclusão segura de arquivos desnecessários","Uma cópia de segurança de dados feita para recuperação em caso de perda ou dano","A sincronização de arquivos entre dois computadores","Um programa de varredura de vírus"], correta: 1, explicacao: "Backup é a cópia de segurança armazenada em local separado do original. Em caso de falha, vírus ou exclusão acidental, permite restaurar as informações." },
+      { tema: "Redes", pergunta: "Qual é a função de um roteador em uma rede de computadores?", alternativas: ["Armazenar cópias de páginas web para acesso rápido","Direcionar o tráfego de dados entre diferentes redes, encaminhando pacotes ao destino correto","Converter sinais analógicos em digitais","Ampliar o sinal de Wi-Fi sem encaminhar dados"], correta: 1, explicacao: "O roteador direciona pacotes de dados entre redes diferentes, escolhendo o melhor caminho para cada pacote." },
+      { tema: "Office", pergunta: "No Excel, o que representa o símbolo $ em uma referência como $A$1?", alternativas: ["Indica o valor em moeda da célula","Torna a referência absoluta, impedindo que mude ao copiar a fórmula","Indica que a célula está protegida","Representa uma fórmula de porcentagem"], correta: 1, explicacao: "O $ torna a referência absoluta (fixa). Ao copiar uma fórmula com $A$1, ela sempre apontará para A1, independente de onde for colada." }
+    ]
+  },
+  legislacaoti: {
+    nome: "Legislação de TI", icone: "⚖️",
+    perguntas: [
+      { tema: "LGPD", pergunta: "A Lei Geral de Proteção de Dados (LGPD) — Lei nº 13.709/2018 — tem como principal objetivo:", alternativas: ["Regular o comércio eletrônico no Brasil","Proteger os direitos fundamentais de liberdade e privacidade dos titulares de dados pessoais","Estabelecer normas para o uso de softwares em órgãos públicos","Definir penalidades para hackers e crimes cibernéticos"], correta: 1, explicacao: "A LGPD regula o tratamento de dados pessoais por pessoas físicas e jurídicas, garantindo direitos como acesso, correção e exclusão dos dados pelo titular." },
+      { tema: "LGPD", pergunta: "Segundo a LGPD, o que é um 'dado pessoal sensível'?", alternativas: ["Qualquer informação que identifique uma empresa","Dados sobre origem racial, saúde, biometria, opinião política, entre outros que podem gerar discriminação","Dados financeiros de pessoas jurídicas","Informações de tráfego de rede de computadores"], correta: 1, explicacao: "A LGPD define dados sensíveis como aqueles que podem causar discriminação, como origem racial, religião, saúde, dado genético/biométrico, vida sexual e opinião política." },
+      { tema: "LGPD", pergunta: "Qual órgão é responsável por fiscalizar e aplicar a LGPD no Brasil?", alternativas: ["Ministério da Justiça","Autoridade Nacional de Proteção de Dados (ANPD)","Tribunal Superior Eleitoral (TSE)","Agência Nacional de Telecomunicações (Anatel)"], correta: 1, explicacao: "A ANPD é o órgão federal responsável por zelar pela proteção dos dados pessoais, editar normas e fiscalizar o cumprimento da LGPD no Brasil." },
+      { tema: "Marco Civil da Internet", pergunta: "O Marco Civil da Internet (Lei nº 12.965/2014) estabelece como princípio fundamental:", alternativas: ["A gratuidade de todas as conexões de internet no Brasil","A neutralidade da rede, garantindo tratamento igualitário dos pacotes de dados","A obrigatoriedade de uso de VPN por provedores","A responsabilidade do usuário por todo conteúdo publicado"], correta: 1, explicacao: "A neutralidade de rede é um dos pilares do Marco Civil: os provedores não podem discriminar pacotes de dados por origem, destino, serviço ou aplicação." },
+      { tema: "Marco Civil da Internet", pergunta: "Segundo o Marco Civil da Internet, por quanto tempo os provedores de conexão devem guardar os registros de conexão dos usuários?", alternativas: ["30 dias","6 meses","1 ano","5 anos"], correta: 2, explicacao: "O Marco Civil determina que os provedores de conexão à internet devem manter os registros de conexão pelo prazo de 1 (um) ano, sob sigilo e ordem judicial para acesso." },
+      { tema: "Lei de Crimes Cibernéticos", pergunta: "A Lei Carolina Dieckmann (Lei nº 12.737/2012) tipifica como crime:", alternativas: ["O uso não autorizado de redes Wi-Fi públicas","A invasão de dispositivos informáticos alheios para obter, adulterar ou destruir dados sem autorização","A revenda de softwares sem nota fiscal","O download de músicas para uso pessoal"], correta: 1, explicacao: "A Lei 12.737/2012 inseriu no Código Penal o crime de invasão de dispositivo informático. A pena é de 3 meses a 1 ano de detenção, aumentada se o agente obtiver conteúdo privado." },
+      { tema: "Crimes Cibernéticos", pergunta: "O crime de estelionato eletrônico, como phishing e clonagem de cartão via internet, é punido com base em qual legislação?", alternativas: ["Apenas pela LGPD","Pelo Código Penal Brasileiro, com agravantes da Lei 14.155/2021","Pelo Marco Civil da Internet exclusivamente","Pela lei de propriedade intelectual"], correta: 1, explicacao: "A Lei 14.155/2021 alterou o Código Penal para qualificar e aumentar penas em fraudes eletrônicas, como estelionato por meio digital." },
+      { tema: "Propriedade Intelectual", pergunta: "A Lei de Software (Lei nº 9.609/1998) protege os programas de computador por quanto tempo?", alternativas: ["10 anos a partir da criação","50 anos a partir do dia 1º de janeiro do ano seguinte à publicação","70 anos contados da morte do autor","Indefinidamente, enquanto o software estiver em uso"], correta: 1, explicacao: "A Lei 9.609/1998 prevê proteção dos programas de computador por 50 anos, contados a partir de 1º de janeiro do ano subsequente à sua publicação ou criação." },
+      { tema: "Governo Eletrônico", pergunta: "O Decreto nº 10.278/2020 estabelece normas sobre:", alternativas: ["O uso de inteligência artificial no setor público","A digitalização de documentos físicos para produção de documentos digitais com validade legal","A obrigatoriedade de uso de sistemas de código aberto nos órgãos federais","A proteção de dados de funcionários públicos"], correta: 1, explicacao: "O Decreto 10.278/2020 define os requisitos técnicos e os procedimentos para digitalizar documentos físicos, conferindo aos documentos digitalizados a mesma validade jurídica do original." },
+      { tema: "Assinatura Digital", pergunta: "A Infraestrutura de Chaves Públicas Brasileira (ICP-Brasil) é regulamentada por qual medida legal?", alternativas: ["Lei nº 9.609/1998 (Lei de Software)","Medida Provisória nº 2.200-2/2001","Lei nº 12.965/2014 (Marco Civil)","Decreto nº 7.845/2012"], correta: 1, explicacao: "A MP 2.200-2/2001 instituiu a ICP-Brasil, que garante autenticidade, integridade e validade jurídica de documentos eletrônicos e transações digitais por meio de certificados digitais." },
+      { tema: "LGPD", pergunta: "Na LGPD, quem é o 'controlador'?", alternativas: ["A pessoa cujos dados são coletados","A pessoa ou empresa que decide como e por que os dados pessoais são tratados","O governo responsável por fiscalizar o uso dos dados","O profissional que opera os sistemas de TI"], correta: 1, explicacao: "O controlador é a pessoa natural ou jurídica que toma as decisões sobre o tratamento dos dados pessoais. O operador é quem executa o tratamento em nome do controlador." },
+      { tema: "LGPD", pergunta: "Qual das alternativas é uma base legal prevista pela LGPD para o tratamento de dados pessoais?", alternativas: ["Interesse exclusivo do controlador","Consentimento do titular","Autorização tácita pelo uso do serviço","Qualquer finalidade comercial legítima"], correta: 1, explicacao: "A LGPD elenca 10 bases legais para o tratamento de dados, sendo o consentimento do titular a mais conhecida. O consentimento deve ser livre, informado e inequívoco." },
+      { tema: "Crimes Cibernéticos", pergunta: "Qual crime é configurado quando alguém intercepta comunicações telemáticas sem autorização judicial?", alternativas: ["Invasão de dispositivo informático (Lei 12.737/2012)","Interceptação ilegal de comunicações (Lei 9.296/1996)","Estelionato eletrônico (Lei 14.155/2021)","Violação de direitos autorais (Lei 9.610/1998)"], correta: 1, explicacao: "A Lei 9.296/1996 regulamenta a interceptação de comunicações telefônicas e telemáticas. Realizá-la sem autorização judicial é crime com pena de 2 a 4 anos de reclusão." },
+      { tema: "Governo Digital", pergunta: "A Lei do Governo Digital (Lei nº 14.129/2021) tem como objetivo principal:", alternativas: ["Obrigar todos os cidadãos a usarem serviços públicos exclusivamente online","Estabelecer princípios e instrumentos para a transformação digital do governo e a oferta de serviços públicos digitais","Criminalizar o uso de serviços públicos presenciais","Criar o certificado digital obrigatório para todos os brasileiros"], correta: 1, explicacao: "A Lei 14.129/2021 dispõe sobre os princípios, regras e instrumentos para o Governo Digital e a eficiência pública, promovendo serviços digitais e transparência." }
+    ]
+  }
+};
+
+let perguntasAtuais = [], categoriaAtual = null, quantidadePorJogo = 7;
+
+const bgMusic = document.getElementById("bg-music");
+
+function iniciarMusicaAuto() {
+  bgMusic.play().catch(() => {});
+}
+
+window.addEventListener("load", iniciarMusicaAuto);
+window.addEventListener("pageshow", iniciarMusicaAuto);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) iniciarMusicaAuto();
+});
+setInterval(iniciarMusicaAuto, 3000);
+
+const darkToggle = document.getElementById("dark-toggle");
+const aplicarModoEscuro = (ativo) => {
+  document.body.classList.toggle("dark-mode", ativo);
+  darkToggle.textContent = ativo ? "☀️" : "🌙";
+};
+const modoEscuroSalvo = localStorage.getItem("modoEscuro") === "true";
+aplicarModoEscuro(modoEscuroSalvo);
+darkToggle.addEventListener("click", () => {
+  const ativo = !document.body.classList.contains("dark-mode");
+  aplicarModoEscuro(ativo);
+  localStorage.setItem("modoEscuro", ativo);
+});
+
+const startButton = document.getElementById("start-button");
+const restartButton = document.getElementById("restart-button");
+const nextButton = document.getElementById("next-button");
+const heroCard = document.getElementById("hero-card");
+const categoryCard = document.getElementById("category-card");
+const quantityCard = document.getElementById("quantity-card");
+const gameCard = document.getElementById("game-card");
+const resultCard = document.getElementById("result-card");
+const scoreElement = document.getElementById("score");
+const progressElement = document.getElementById("progress");
+const timerElement = document.getElementById("timer");
+const themeLine = document.getElementById("theme-line");
+const questionText = document.getElementById("question-text");
+const answersContainer = document.getElementById("answers");
+const feedbackPanel = document.getElementById("feedback");
+const feedbackTitle = document.getElementById("feedback-title");
+const feedbackText = document.getElementById("feedback-text");
+const resultTitle = document.getElementById("result-title");
+const resultSummary = document.getElementById("result-summary");
+const resultTag = document.getElementById("result-tag");
+const vidasElement = document.getElementById("vidas");
+
+let indiceAtual = 0, pontuacao = 0, vidas = 3;
+const TOTAL_VIDAS = 3, TEMPO_LIMITE = 60;
+let tempoRestante = TEMPO_LIMITE, temporizador = null, respondeu = false, contextoAudio = null;
+
+function tocarSom(tipo) {
+  const AudioContexto = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContexto) return;
+  if (!contextoAudio) contextoAudio = new AudioContexto();
+  if (contextoAudio.state === "suspended") contextoAudio.resume();
+  const cfg = {
+    inicio: [{f:440,d:.08,a:0},{f:660,d:.12,a:.09}],
+    acerto: [{f:523.25,d:.08,a:0},{f:659.25,d:.1,a:.08},{f:783.99,d:.14,a:.18}],
+    erro: [{f:260,d:.12,a:0},{f:180,d:.18,a:.1}],
+    tempo: [{f:190,d:.12,a:0},{f:150,d:.18,a:.12}]
+  };
+  const notas = cfg[tipo]; if (!notas) return;
+  const t0 = contextoAudio.currentTime;
+  notas.forEach(({f,d,a}) => {
+    const o = contextoAudio.createOscillator();
+    const g = contextoAudio.createGain();
+    o.type = (tipo==="erro"||tipo==="tempo") ? "sawtooth" : "triangle";
+    o.frequency.setValueAtTime(f, t0+a);
+    g.gain.setValueAtTime(.0001, t0+a);
+    g.gain.exponentialRampToValueAtTime(.08, t0+a+.02);
+    g.gain.exponentialRampToValueAtTime(.0001, t0+a+d);
+    o.connect(g); g.connect(contextoAudio.destination);
+    o.start(t0+a); o.stop(t0+a+d);
+  });
+}
+
+function mostrarSelecaoCategoria() {
+  heroCard.classList.add("hidden"); categoryCard.classList.remove("hidden");
+  quantityCard.classList.add("hidden"); gameCard.classList.add("hidden"); resultCard.classList.add("hidden");
+}
+function embaralhar(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; }
+  return a;
+}
+function escolherCategoria(chave) {
+  categoriaAtual = categorias[chave];
+  categoryCard.classList.add("hidden"); quantityCard.classList.remove("hidden");
+}
+function confirmarQuantidade(qtd) {
+  const total = Math.min(qtd, categoriaAtual.perguntas.length);
+  perguntasAtuais = embaralhar(categoriaAtual.perguntas).slice(0, total).map(p => {
+    const corr = p.alternativas[p.correta];
+    const alts = embaralhar(p.alternativas);
+    return { ...p, alternativas: alts, correta: alts.indexOf(corr) };
+  });
+  quantityCard.classList.add("hidden"); iniciarJogo();
+}
+
+let gameOverChamado = false;
+
+function iniciarJogo() {
+  indiceAtual = 0; pontuacao = 0; vidas = TOTAL_VIDAS; gameOverChamado = false;
+  atualizarVidas(); tocarSom("inicio");
+  iniciarMusicaAuto();
+  mostrarTelaJogo(); carregarPergunta();
+}
+function atualizarVidas() {
+  vidasElement.textContent = "❤️".repeat(vidas) + "🧡".repeat(TOTAL_VIDAS - vidas);
+}
+function perderVida() {
+  vidas -= 1; atualizarVidas();
+  if (vidas <= 0) setTimeout(gameOver, 1800);
+}
+function gameOver() {
+  if (gameOverChamado) return;
+  gameOverChamado = true; limparTimer();
+  gameCard.classList.add("hidden"); resultCard.classList.remove("hidden");
+  resultTag.textContent = "Game Over";
+  resultTitle.textContent = "Suas vidas acabaram! 💔";
+  resultSummary.textContent = `Você acertou ${pontuacao} de ${perguntasAtuais.length} antes de perder todas as vidas. Tente novamente!`;
+}
+function mostrarTelaJogo() {
+  gameCard.classList.remove("hidden"); resultCard.classList.add("hidden"); atualizarPlacar();
+}
+function atualizarPlacar() {
+  scoreElement.textContent = String(pontuacao);
+  progressElement.textContent = `${indiceAtual+1}/${perguntasAtuais.length}`;
+}
+function carregarPergunta() {
+  respondeu = false; tempoRestante = TEMPO_LIMITE; atualizarPlacar(); atualizarTimer();
+  feedbackPanel.classList.add("hidden");
+  const p = perguntasAtuais[indiceAtual];
+  themeLine.textContent = p.tema; questionText.textContent = p.pergunta;
+  answersContainer.innerHTML = "";
+  p.alternativas.forEach((alt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer-button"; btn.type = "button"; btn.textContent = alt;
+    btn.addEventListener("click", () => selecionarResposta(i, btn));
+    btn.addEventListener("touchstart", e => { e.preventDefault(); selecionarResposta(i, btn); }, {passive:false});
+    answersContainer.appendChild(btn);
+  });
+  iniciarTimer();
+}
+function iniciarTimer() {
+  limparTimer();
+  temporizador = setInterval(() => { tempoRestante--; atualizarTimer(); if (tempoRestante <= 0) tempoEsgotado(); }, 1000);
+}
+function limparTimer() { if (temporizador) { clearInterval(temporizador); temporizador = null; } }
+function atualizarTimer() { timerElement.textContent = String(tempoRestante); }
+function selecionarResposta(idx, btn) {
+  if (respondeu) return;
+  respondeu = true; limparTimer();
+  const p = perguntasAtuais[indiceAtual];
+  const botoes = Array.from(document.querySelectorAll(".answer-button"));
+  const acertou = idx === p.correta;
+  botoes.forEach((b, i) => { b.disabled = true; if (i === p.correta) b.classList.add("correct"); });
+  if (acertou) {
+    pontuacao++; btn.classList.add("correct");
+    feedbackTitle.textContent = "Gol de conhecimento!"; tocarSom("acerto");
+  } else {
+    btn.classList.add("wrong");
+    feedbackTitle.textContent = "Quase!"; tocarSom("erro"); perderVida();
+  }
+  scoreElement.textContent = String(pontuacao);
+  feedbackText.textContent = p.explicacao; feedbackPanel.classList.remove("hidden");
+}
+function tempoEsgotado() {
+  if (respondeu) return;
+  respondeu = true; limparTimer();
+  const p = perguntasAtuais[indiceAtual];
+  Array.from(document.querySelectorAll(".answer-button")).forEach((b,i) => {
+    b.disabled = true; if (i === p.correta) b.classList.add("correct");
+  });
+  feedbackTitle.textContent = "Tempo encerrado!";
+  feedbackText.textContent = `${p.explicacao} A resposta certa era: ${p.alternativas[p.correta]}.`;
+  feedbackPanel.classList.remove("hidden"); tocarSom("tempo"); perderVida();
+}
+function avancarPergunta() {
+  if (vidas <= 0) return;
+  indiceAtual++;
+  if (indiceAtual >= perguntasAtuais.length) { mostrarResultado(); return; }
+  carregarPergunta();
+}
+function mostrarResultado() {
+  limparTimer(); gameCard.classList.add("hidden"); resultCard.classList.remove("hidden");
+  const total = perguntasAtuais.length;
+  const pct = Math.round((pontuacao / total) * 100);
+  if (pct === 100) { resultTag.textContent = "Perfeito! 🏆"; resultTitle.textContent = "Gol de placa! Você acertou tudo!"; }
+  else if (pct >= 70) { resultTag.textContent = "Muito bem! ⚽"; resultTitle.textContent = "Ótimo desempenho em campo!"; }
+  else if (pct >= 40) { resultTag.textContent = "Bom esforço! 💪"; resultTitle.textContent = "Você está progredindo!"; }
+  else { resultTag.textContent = "Continue treinando! 📚"; resultTitle.textContent = "O banco do reservas te espera!"; }
+  resultSummary.textContent = `Você acertou ${pontuacao} de ${total} perguntas (${pct}%). Cada nova rodada traz perguntas diferentes — tente de novo!`;
+}
+
+function handleStart() { mostrarSelecaoCategoria(); }
+startButton.addEventListener("click", handleStart);
+startButton.addEventListener("touchstart", e => { e.preventDefault(); handleStart(); }, {passive:false});
+restartButton.addEventListener("click", () => { resultCard.classList.add("hidden"); mostrarSelecaoCategoria(); });
+nextButton.addEventListener("click", () => avancarPergunta());
+
+document.getElementById("cat-coracao").addEventListener("click", () => escolherCategoria("coracao"));
+document.getElementById("cat-futebol").addEventListener("click", () => escolherCategoria("futebol"));
+document.getElementById("cat-informatica").addEventListener("click", () => escolherCategoria("informatica"));
+document.getElementById("cat-ensinomedio").addEventListener("click", () => escolherCategoria("ensinomedio"));
+document.getElementById("cat-legislacaoti").addEventListener("click", () => escolherCategoria("legislacaoti"));
+document.querySelectorAll(".quantity-button").forEach(btn => {
+  btn.addEventListener("click", () => confirmarQuantidade(Number(btn.dataset.qty)));
+});
+  </script>
+</body>
+</html>
