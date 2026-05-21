@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Pinball PatelFin 7 - Celular</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 id="title">Pinball patelfin 6</h1>
+
+      <div class="language-selector">
+        <select id="languageSelect">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="it">Italiano</option>
+          <option value="ja">日本語</option>
+          <option value="zh">中文</option>
+          <option value="ru">Русский</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
+
+      <div class="audio-controls">
+        <label for="volumeControl" id="volumeLabel">VOLUME:</label>
+        <input type="range" id="volumeControl" min="0" max="100" value="70">
+        <span id="volumeValue">70%</span>
+      </div>
+    </div>
+
+    <div class="game-info">
+      <div class="score-panel">
+        <div class="score-item">
+          <span id="scoreLabel">PONTUAÇÃO</span>
+          <span id="scoreValue" class="neon-text">0</span>
+        </div>
+        <div class="score-item">
+          <span id="ballsLabel">BOLAS</span>
+          <span id="ballsValue" class="neon-text">3</span>
+        </div>
+        <div class="score-item">
+          <span id="highScoreLabel">RECORDE</span>
+          <span id="highScoreValue" class="neon-text">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="controls">
+        <button id="leftFlipper" class="flipper-btn left-btn">
+          <span id="leftFlipperLabel">ESQUERDA</span>
+        </button>
+        <button id="centerFlipper" class="flipper-btn center-btn">
+          <span id="centerFlipperLabel">CENTRO</span>
+        </button>
+        <button id="rightFlipper" class="flipper-btn right-btn">
+          <span id="rightFlipperLabel">DIREITA</span>
+        </button>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="start-btn">
+          <span id="startLabel">INICIAR</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="instructions">
+      <h3 id="instructionsTitle">INSTRUÇÕES</h3>
+      <div class="scrollable-content">
+        <ul id="instructionsList">
+          <li><span id="inst1">Teclado: SETA ESQUERDA, SETA DIREITA e SETA PARA BAIXO controlam os flippers</span></li>
+          <li><span id="inst2">A bola inicia automaticamente</span></li>
+          <li><span id="inst3">Controle (Xbox/PlayStation/Nintendo): direcional/analógico para navegar e botao principal para acionar; mouse/toque tambem funcionam nos botoes da tela</span></li>
+          <li><span id="inst4">Acerte os alvos neon para ganhar pontos</span></li>
+          <li><span id="inst5">Evite perder a bola na parte inferior</span></li>
+          <li><span id="inst6">Você tem 3 bolas por jogo</span></li>
+          <li><span id="inst7">Use a barra de rolagem para ver mais informações</span></li>
+          <li><span id="inst8">O jogo detecta automaticamente seu idioma baseado na localização</span></li>
+          <li class="beta-item"><span id="inst9">Celular (beta): o suporte por toque ainda está em testes e pode funcionar de forma diferente em alguns aparelhos</span></li>
+          <li class="beta-item"><span id="inst10">Se algum botão não responder no celular, tente virar a tela para modo paisagem e tocar novamente</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <audio id="backgroundMusic" loop autoplay playsinline preload="auto" style="display:none;">
+    <source src="deltax-music-burst-286988.mp3" type="audio/mpeg">
+  </audio>
+
+  <script src="gamepad-support.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

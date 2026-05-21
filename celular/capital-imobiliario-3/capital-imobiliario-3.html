@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Capital Imobiliario 3</title>
+  <style>
+    :root {
+      --bg: #eef2f6;
+      --bg2: #dbe3eb;
+      --panel: rgba(255, 255, 255, 0.86);
+      --text: #17283a;
+      --muted: #4d6073;
+      --line: #a3b4c7;
+      --tile: #ffffff;
+      --accent: #25bb88;
+      --danger: #ec6e6e;
+    }
+
+    body[data-theme="dark"] {
+      --bg: #0e1a27;
+      --bg2: #12263b;
+      --panel: rgba(7, 17, 27, 0.86);
+      --text: #f4f7fa;
+      --muted: #c4d1dc;
+      --line: #3e5873;
+      --tile: #1a2f45;
+      --accent: #6ae8bf;
+      --danger: #ff8f8f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: "Trebuchet MS", "Verdana", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 20%, var(--bg), var(--bg2));
+    }
+
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 14px);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      backdrop-filter: blur(3px);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 4vw, 2rem);
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+
+    .status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .chip {
+      background: color-mix(in srgb, var(--tile) 88%, transparent);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .chip.gp {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .chip.gp::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #9d3442;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+    }
+
+    .chip.gp.connected::before {
+      background: #42d592;
+      box-shadow: 0 0 8px rgba(66, 213, 146, 0.95);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(58px, 1fr));
+      grid-template-rows: repeat(5, minmax(58px, 1fr));
+      gap: 7px;
+      aspect-ratio: 1 / 1;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .cell {
+      background: var(--tile);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 6px;
+      font-size: 0.78rem;
+      display: grid;
+      align-content: space-between;
+      gap: 5px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .cell strong { font-size: 0.8rem; }
+
+    .board-center {
+      grid-column: 2 / 5;
+      grid-row: 2 / 5;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--tile) 78%, transparent);
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 12px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .owner-p1 { outline: 2px solid #66e4b8; }
+    .owner-p2 { outline: 2px solid #ff9d9d; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    button {
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 11px;
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: #0f221b;
+      cursor: pointer;
+      background: linear-gradient(130deg, var(--accent), #9ef5e3);
+    }
+
+    button.alt {
+      background: linear-gradient(130deg, #ffc4c4, var(--danger));
+      color: #2d0202;
+    }
+
+    .ghost {
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--tile) 82%, transparent);
+      color: var(--text);
+      font-weight: 700;
+      width: auto;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .log {
+      max-height: 176px;
+      overflow: auto;
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .manual-shell {
+      display: grid;
+      gap: 8px;
+    }
+
+    .manual-toggle {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--tile) 84%, transparent);
+      color: var(--text);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+    }
+
+    .manual-content h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .manual-content p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .manual-content ul {
+      margin: 0;
+      padding-left: 16px;
+      color: var(--text);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 720px) {
+      .controls { grid-template-columns: 1fr; }
+      .board { gap: 6px; }
+      .cell { font-size: 0.72rem; padding: 5px; }
+      .cell strong { font-size: 0.74rem; }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="app">
+    <div class="panel top">
+      <h1>Capital Imobiliario 3</h1>
+      <div class="top-actions">
+        <button id="theme-toggle" class="ghost" type="button">Modo claro</button>
+        <div class="chip gp" id="gamepad-status">Controle desconectado</div>
+      </div>
+    </div>
+
+    <div class="panel status">
+      <div class="chip" id="turno"></div>
+      <div class="chip" id="p1"></div>
+      <div class="chip" id="p2"></div>
+      <div class="chip" id="control-hint">Toque/click/teclado para jogar</div>
+    </div>
+
+    <div class="panel board" id="board">
+      <div class="board-center">
+        <strong>Tabuleiro Capital Imobiliario</strong>
+        <div>Compre propriedades, evite falir e vença.</div>
+      </div>
+    </div>
+
+    <div class="panel controls">
+      <button id="roll" type="button">Jogar dado</button>
+      <button class="alt" id="reset" type="button">Reiniciar</button>
+    </div>
+
+    <div class="panel manual-shell">
+      <button id="toggle-manual" class="manual-toggle" aria-expanded="false" aria-controls="manual-content" type="button">Como jogar</button>
+      <div id="manual-content" class="manual-content" hidden>
+        <h2>Manual de Instrucoes</h2>
+        <p>Objetivo: nao falir. O ultimo jogador com dinheiro vence.</p>
+        <ul>
+          <li>Como jogar: role o dado, avance no tabuleiro, compre propriedades e pague aluguel quando cair em terreno adversario.</li>
+          <li>Teclado: Enter ou Espaco para jogar dado. R para reiniciar partida. T alterna tema claro/escuro.</li>
+          <li>Controle (PS5/Xbox/Nintendo): botao principal joga o dado. Start ou Y reinicia.</li>
+          <li>Celular: toque em Jogar dado para avancar e toque em Reiniciar para comecar de novo.</li>
+          <li>Controle e opcional: voce pode alternar livremente entre touch, click, teclado e joystick.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel log" id="log"></div>
+  </div>
+
+  <audio id="bg-music" loop preload="auto" autoplay playsinline style="display:none;">
+    <source src="deltax-music-end-game-386896.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    const casas = [
+      { nome: "Inicio", preco: 0, aluguel: 0 },
+      { nome: "Vila Azul", preco: 120, aluguel: 24 },
+      { nome: "Parque Sul", preco: 140, aluguel: 28 },
+      { nome: "Taxa", preco: 0, aluguel: 0, tipo: "taxa" },
+      { nome: "Centro", preco: 180, aluguel: 36 },
+      { nome: "Chance", preco: 0, aluguel: 0, tipo: "chance" },
+      { nome: "Jardim", preco: 220, aluguel: 44 },
+      { nome: "Orla", preco: 250, aluguel: 50 },
+      { nome: "Praca", preco: 270, aluguel: 54 },
+      { nome: "Bonus", preco: 0, aluguel: 0, tipo: "bonus" },
+      { nome: "Norte", preco: 300, aluguel: 60 },
+      { nome: "Leste", preco: 320, aluguel: 64 },
+      { nome: "Sorte", preco: 0, aluguel: 0, tipo: "chance" },
+      { nome: "Oeste", preco: 350, aluguel: 70 },
+      { nome: "Sul", preco: 380, aluguel: 76 }
+    ];
+
+    const posicoesTabuleiro = [
+      { row: 5, col: 1 }, { row: 5, col: 2 }, { row: 5, col: 3 }, { row: 5, col: 4 }, { row: 5, col: 5 },
+      { row: 4, col: 5 }, { row: 3, col: 5 }, { row: 2, col: 5 }, { row: 1, col: 5 }, { row: 1, col: 4 },
+      { row: 1, col: 3 }, { row: 1, col: 2 }, { row: 1, col: 1 }, { row: 2, col: 1 }, { row: 3, col: 1 }
+    ];
+
+    let estado;
+    const gamepadState = { connected: false, index: -1, prevButtons: [] };
+    const bgMusic = document.getElementById("bg-music");
+    const elBoard = document.getElementById("board");
+    const elTurno = document.getElementById("turno");
+    const elP1 = document.getElementById("p1");
+    const elP2 = document.getElementById("p2");
+    const elLog = document.getElementById("log");
+    const elRoll = document.getElementById("roll");
+    const elReset = document.getElementById("reset");
+    const elToggleManual = document.getElementById("toggle-manual");
+    const elManualContent = document.getElementById("manual-content");
+    const elGamepadStatus = document.getElementById("gamepad-status");
+    const elControlHint = document.getElementById("control-hint");
+    const elThemeToggle = document.getElementById("theme-toggle");
+
+    function iniciarMusica() {
+      bgMusic.play().catch(() => {});
+    }
+
+    function novoEstado() {
+      return {
+        turno: 0,
+        jogadores: [
+          { nome: "Jogador 1", dinheiro: 1500, pos: 0 },
+          { nome: "Jogador 2", dinheiro: 1500, pos: 0 }
+        ],
+        donos: Array(casas.length).fill(null),
+        logs: ["Partida iniciada."]
+      };
+    }
+
+    function log(msg) {
+      estado.logs.unshift(msg);
+      estado.logs = estado.logs.slice(0, 18);
+      elLog.innerHTML = estado.logs.map((linha) => `<div>${linha}</div>`).join("");
+    }
+
+    function render() {
+      const centro = '<div class="board-center"><strong>Tabuleiro Capital Imobiliario</strong><div>Compre propriedades, evite falir e vença.</div></div>';
+      const casasHtml = casas.map((casa, idx) => {
+        const dono = estado.donos[idx];
+        const p1aqui = estado.jogadores[0].pos === idx ? " J1" : "";
+        const p2aqui = estado.jogadores[1].pos === idx ? " J2" : "";
+        const cls = dono === 0 ? "owner-p1" : dono === 1 ? "owner-p2" : "";
+        const linha = casa.preco ? `R$${casa.preco}` : casa.tipo ? casa.tipo.toUpperCase() : "";
+        const pos = posicoesTabuleiro[idx];
+        return `<div class="cell ${cls}" style="grid-row:${pos.row};grid-column:${pos.col};"><strong>${casa.nome}</strong><div>${linha}${p1aqui}${p2aqui}</div></div>`;
+      }).join("");
+
+      elBoard.innerHTML = centro + casasHtml;
+
+      const j = estado.jogadores;
+      elTurno.textContent = `Vez: ${j[estado.turno].nome}`;
+      elP1.textContent = `J1: R$${j[0].dinheiro}`;
+      elP2.textContent = `J2: R$${j[1].dinheiro}`;
+    }
+
+    function eventoCasa(jogador, idx) {
+      const casa = casas[idx];
+      if (casa.tipo === "taxa") {
+        jogador.dinheiro -= 120;
+        log(`${jogador.nome} pagou taxa de R$120.`);
+        return;
+      }
+      if (casa.tipo === "bonus") {
+        jogador.dinheiro += 150;
+        log(`${jogador.nome} ganhou bonus de R$150.`);
+        return;
+      }
+      if (casa.tipo === "chance") {
+        const valor = Math.random() < 0.5 ? 130 : -90;
+        jogador.dinheiro += valor;
+        log(`${jogador.nome} caiu na chance: ${valor >= 0 ? "+" : ""}${valor}.`);
+        return;
+      }
+      if (!casa.preco) return;
+
+      const dono = estado.donos[idx];
+      if (dono == null && jogador.dinheiro >= casa.preco) {
+        jogador.dinheiro -= casa.preco;
+        estado.donos[idx] = estado.turno;
+        log(`${jogador.nome} comprou ${casa.nome} por R$${casa.preco}.`);
+      } else if (dono !== null && dono !== estado.turno) {
+        jogador.dinheiro -= casa.aluguel;
+        estado.jogadores[dono].dinheiro += casa.aluguel;
+        log(`${jogador.nome} pagou aluguel de R$${casa.aluguel}.`);
+      }
+    }
+
+    function jogar() {
+      if (elRoll.disabled) return;
+      const jogador = estado.jogadores[estado.turno];
+      const dado = 1 + Math.floor(Math.random() * 6);
+      jogador.pos = (jogador.pos + dado) % casas.length;
+
+      if (jogador.pos < dado) {
+        jogador.dinheiro += 200;
+        log(`${jogador.nome} passou no inicio e ganhou R$200.`);
+      }
+
+      log(`${jogador.nome} tirou ${dado} e foi para ${casas[jogador.pos].nome}.`);
+      eventoCasa(jogador, jogador.pos);
+
+      if (jogador.dinheiro <= 0) {
+        const vencedor = estado.jogadores[(estado.turno + 1) % 2].nome;
+        log(`Fim! ${vencedor} venceu.`);
+        elRoll.disabled = true;
+      }
+
+      estado.turno = (estado.turno + 1) % 2;
+      render();
+    }
+
+    function iniciar() {
+      estado = novoEstado();
+      elRoll.disabled = false;
+      render();
+      log("Use toque/click/teclado ou controle para jogar.");
+      iniciarMusica();
+    }
+
+    function detectarTipoControle(id) {
+      const texto = String(id || "").toLowerCase();
+      if (texto.includes("dualsense") || texto.includes("playstation") || texto.includes("sony")) return "PS5";
+      if (texto.includes("xbox") || texto.includes("microsoft")) return "XBOX";
+      if (texto.includes("nintendo") || texto.includes("switch") || texto.includes("joy-con") || texto.includes("pro controller")) return "NINTENDO";
+      return "GENERICO";
+    }
+
+    function atualizarStatusControle(pad) {
+      if (!pad) {
+        elGamepadStatus.textContent = "Controle desconectado";
+        elGamepadStatus.classList.remove("connected");
+        elControlHint.textContent = "Toque/click/teclado para jogar";
+        return;
+      }
+
+      const tipo = detectarTipoControle(pad.id);
+      elGamepadStatus.textContent = `Controle conectado: ${tipo}`;
+      elGamepadStatus.classList.add("connected");
+      elControlHint.textContent = "Opcional: Enter/Espaco, A/X ou toque";
+    }
+
+    function atualizarTemaBotao() {
+      const escuro = document.body.dataset.theme === "dark";
+      elThemeToggle.textContent = escuro ? "Modo claro" : "Modo escuro";
+    }
+
+    function alternarTema() {
+      document.body.dataset.theme = document.body.dataset.theme === "dark" ? "light" : "dark";
+      localStorage.setItem("capital3-theme", document.body.dataset.theme);
+      atualizarTemaBotao();
+    }
+
+    function processarTeclado(event) {
+      if (event.repeat) return;
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        jogar();
+      }
+      if (event.key === "r" || event.key === "R") {
+        event.preventDefault();
+        iniciar();
+      }
+      if (event.key === "t" || event.key === "T") {
+        event.preventDefault();
+        alternarTema();
+      }
+    }
+
+    function botaoApertouAgora(buttons, idx) {
+      return !!buttons[idx]?.pressed && !gamepadState.prevButtons[idx];
+    }
+
+    function processarGamepad(pad) {
+      const buttons = pad.buttons || [];
+      const tipo = detectarTipoControle(pad.id);
+      const ehNintendo = tipo === "NINTENDO";
+      const botaoJogar = ehNintendo ? 1 : 0;
+      const botaoReiniciar = 3;
+
+      if (botaoApertouAgora(buttons, botaoJogar)) jogar();
+      if (botaoApertouAgora(buttons, 9) || botaoApertouAgora(buttons, botaoReiniciar)) iniciar();
+
+      gamepadState.prevButtons = buttons.map((botao) => !!botao.pressed);
+    }
+
+    function loopGamepad() {
+      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+      const pad = Array.from(pads).find((p) => p && p.connected);
+
+      if (pad) {
+        if (!gamepadState.connected || gamepadState.index !== pad.index) {
+          gamepadState.connected = true;
+          gamepadState.index = pad.index;
+          gamepadState.prevButtons = [];
+          atualizarStatusControle(pad);
+          log(`Controle detectado: ${detectarTipoControle(pad.id)}.`);
+        }
+        processarGamepad(pad);
+      } else if (gamepadState.connected) {
+        gamepadState.connected = false;
+        gamepadState.index = -1;
+        gamepadState.prevButtons = [];
+        atualizarStatusControle(null);
+        log("Controle desconectado. Jogo continua por toque/click/teclado.");
+      }
+
+      requestAnimationFrame(loopGamepad);
+    }
+
+    window.addEventListener("load", iniciarMusica);
+    window.addEventListener("pageshow", iniciarMusica);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) iniciarMusica();
+    });
+    setInterval(iniciarMusica, 3000);
+
+    window.addEventListener("gamepadconnected", (event) => {
+      atualizarStatusControle(event.gamepad);
+    });
+
+    window.addEventListener("gamepaddisconnected", () => {
+      const aindaTemControle = Array.from(navigator.getGamepads ? navigator.getGamepads() : []).some((p) => p && p.connected);
+      if (!aindaTemControle) atualizarStatusControle(null);
+    });
+
+    document.addEventListener("keydown", processarTeclado);
+    elRoll.addEventListener("click", jogar);
+    elReset.addEventListener("click", iniciar);
+    elThemeToggle.addEventListener("click", alternarTema);
+    elToggleManual.addEventListener("click", () => {
+      const aberto = elToggleManual.getAttribute("aria-expanded") === "true";
+      elToggleManual.setAttribute("aria-expanded", String(!aberto));
+      elToggleManual.textContent = aberto ? "Como jogar" : "Ocultar manual";
+      elManualContent.hidden = aberto;
+    });
+
+    const temaSalvo = localStorage.getItem("capital3-theme");
+    if (temaSalvo === "light" || temaSalvo === "dark") {
+      document.body.dataset.theme = temaSalvo;
+    }
+    atualizarTemaBotao();
+    iniciar();
+    atualizarStatusControle(null);
+    requestAnimationFrame(loopGamepad);
+  </script>
+</body>
+</html>
